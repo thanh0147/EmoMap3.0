@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Chọn avatar — EmoMap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-100 to-indigo-200 min-h-screen flex items-center justify-center p-6">
+
+  <div class="bg-white/70 backdrop-blur-xl p-8 rounded-3xl shadow-2xl max-w-lg w-full text-center">
+
+    <h1 class="text-2xl font-bold mb-4 text-slate-800">
+      Hãy chọn avatar đại diện của bạn
+    </h1>
+
+    <p class="text-slate-600 mb-6">
+      Avatar này sẽ xuất hiện bên cạnh mỗi tin nhắn bạn gửi trong EmoMap 💬
+    </p>
+
+    <div class="grid grid-cols-5 gap-4 justify-center text-3xl">
+
+      <!-- Danh sách avatar -->
+      <button class="avatarBtn">👦🏻</button>
+      <button class="avatarBtn">🧒🏻</button>
+      <button class="avatarBtn">👩🏻</button>
+      <button class="avatarBtn">🤴🏻</button>
+      <button class="avatarBtn">👸🏻</button>
+
+      <button class="avatarBtn">🎅🏻</button>
+      <button class="avatarBtn">🧚🏻‍♂️</button>
+      <button class="avatarBtn">🧜🏻‍♀️</button>
+      <button class="avatarBtn">😺</button>
+      <button class="avatarBtn">😻</button>
+
+      <button class="avatarBtn">😈</button>
+      <button class="avatarBtn">🤡</button>
+      <button class="avatarBtn">🤖</button>
+      <button class="avatarBtn">🐶</button>
+      <button class="avatarBtn">🐺</button>
+
+      <button class="avatarBtn">🐯</button>
+      <button class="avatarBtn">🐼</button>
+
+    </div>
+
+    <p class="text-xs text-slate-500 mt-4">
+      Bạn có thể thay đổi avatar trong lần dùng tiếp theo.
+    </p>
+
+  </div>
+
+<script>
+document.querySelectorAll(".avatarBtn").forEach(btn => {
+  btn.onclick = () => {
+    const avatar = btn.textContent.trim();
+    localStorage.setItem("student_avatar", avatar);
+    window.location.href = "chat.html";
+  };
+});
+</script>
+
+</body>
+</html>

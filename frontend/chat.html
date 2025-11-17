@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EmoMap — Trò chuyện cảm xúc</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+
+  <style>
+        #chat * {
+            overflow: visible !important;
+        }
+
+        @keyframes floatArcLeft {
+            0%   { transform: translate(0, 0)   rotate(0deg); opacity: 1; }
+            100% { transform: translate(-45px, -70px) rotate(-25deg); opacity: 0; }
+        }
+
+        .emoji-particle {
+            position: absolute;
+            font-size: 26px;
+            pointer-events: none;
+            left: 50%;
+            bottom: 20%;
+            transform: translateX(-50%);
+        }
+
+
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Avatar AI breathing */
+    .avatar-ai {
+      animation: breathing 3s ease-in-out infinite;
+    }
+    @keyframes breathing {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.07); }
+      100% { transform: scale(1); }
+    }
+
+    /* AI typing animation */
+    .typing {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 6px 12px;
+      background: #e2e8f0;
+      border-radius: 20px;
+      animation: fadeIn 0.3s ease-out;
+    }
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: #94a3b8;
+      border-radius: 50%;
+      animation: bounce 1.3s infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); opacity: 0.4; }
+      50% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* Smooth fade-up */
+    .fade-up {
+      animation: fadeUp 0.6s ease-out;
+    }
+    @keyframes fadeUp {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mobile responsive chat height */
+    @media (max-width: 640px) {
+      #chat {
+        height: 65vh !important;
+      }
+    }
+  </style>
+
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+
+  <div class="max-w-2xl w-full fade-up">
+
+    <div class="bg-white/80 backdrop-blur-xl p-6 rounded-3xl shadow-2xl">
+
+      <!-- Header -->
+      <header class="flex items-center gap-4 mb-4">
+        <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg avatar-ai">
+          <span class="text-3xl text-white"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png"  alt=""></span>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-slate-800">EmoMap AI</h1>
+          <p class="text-sm text-slate-500">Trò chuyện — Lắng nghe — Thấu hiểu cảm xúc</p>
+        </div>
+      </header>
+
+      <!-- Chat messages -->
+      <div id="chat"
+           class="h-[480px] overflow-y-auto p-4 rounded-2xl bg-slate-50 border shadow-inner space-y-3"></div>
+
+      <!-- Input area -->
+      <div id="inputArea" class="mt-4"></div>
+
+    </div>
+  </div>
+
+  <!-- MAIN SCRIPT -->
+  <script>
+    /********************************************
+     *   EMOJI MAPPING CHO từng mức Likert 1–5
+     ********************************************/
+    const likertEmoji = {
+      1: { icon: "😢", text: "Buồn bã" },
+      2: { icon: "😕", text: "Không vui" },
+      3: { icon: "🙂", text: "Bình thường" },
+      4: { icon: "😊", text: "Vui vẻ" },
+      5: { icon: "🤩", text: "Rất vui / Hào hứng" }
+    };
+
+    /********************************************
+     *  BẮT ĐẦU MÃ LOGIC (giữ nguyên)
+     ********************************************/
+    const chatEl = document.getElementById("chat");
+    const inputArea = document.getElementById("inputArea");
+
+    const infoQuestions = [
+      { id: "name", type: "text", question: "Chào bạn! Cho mình biết tên của bạn nhé?" },
+      { id: "class", type: "text", question: "Bạn đang học lớp nào?" },
+      { id: "gender", type: "choice", question: "Giới tính của bạn là gì?", choices: ["Nam","Nữ","Khác","Không muốn tiết lộ"] }
+    ];
+
+    const likertGroups = [
+      {
+        group: "I. Cảm xúc tích cực trong học tập",
+        questions: [
+          "Tôi cảm thấy ... khi tham gia các tiết học trên lớp.",
+          "Tôi cảm thấy ... khi đến trường mỗi ngày."
+        ]
+      },
+      {
+        group: "II. Cảm xúc tiêu cực trong học đường",
+        questions: [
+          "Tôi cảm thấy ... khi chứng kiến bạo lực học đường.",
+          "Tôi cảm thấy ... khi giao tiếp với bạn bè trong lớp."
+        ]
+      },
+      {
+        group: "III. Cảm xúc khi có thể chia sẻ",
+        questions: [
+          "Tôi cảm thấy ... khi có ứng dụng ghi lại cảm xúc hằng ngày.",
+          "Tôi cảm thấy ... khi chia sẻ cảm xúc của mình đối với người khác."
+        ]
+      },
+      {
+        group: "IV. Cảm xúc về bản thân",
+        questions: [
+          "Tôi cảm thấy ... với bản thân mình.",
+          "Tôi cảm thấy ... về khả năng của bản thân."
+        ]
+      }
+    ];
+    const finalMessagePrompt = "Nếu có điều gì khiến bạn vui/buồn/lo lắng hôm nay, hãy chia sẻ với mình nhé.";
+
+    const likertQuestions = likertGroups.flatMap(
+      g => g.questions.map(q => ({ group: g.group, text: q }))
+    );
+
+    let state = {
+      step: 0, infoIndex: 0, likertIndex: 0,
+      responses: {}
+    };
+
+    /********************************************
+     *  CHAT UI RENDER FUNCTIONS
+     ********************************************/
+    function scrollToBottom() {
+      setTimeout(() => { try { chatEl.scrollTop = chatEl.scrollHeight; } catch(e){} }, 10);
+    }
+
+    function botTyping() {
+      const wrap = document.createElement("div");
+      wrap.className = "max-w-[70%]";
+      wrap.innerHTML = `
+        <div class="typing shadow-md">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>`;
+      chatEl.appendChild(wrap);
+      scrollToBottom();
+      return wrap;
+    }
+
+    function createBotBubbleContainer() {
+      const wrapper = document.createElement("div");
+      wrapper.className = "max-w-[80%]";
+      const bubble = document.createElement("div");
+      bubble.className = "p-3 rounded-2xl bg-blue-100 text-slate-800 shadow";
+      wrapper.appendChild(bubble);
+      chatEl.appendChild(wrapper);
+      scrollToBottom();
+      return { wrapper, bubble };
+    }
+function botMessage(text, { speed = 18, immediate = false } = {}) {
+      text = String(text || "");
+      const isHTML = /<\/?[a-z][\s\S]*>/i.test(text); 
+      const { wrapper, bubble } = createBotBubbleContainer();
+
+      if (immediate || isHTML) {
+          bubble.innerHTML = text;
+          scrollToBottom();
+          return Promise.resolve();
+      }
+
+      return new Promise((resolve) => {
+        bubble.innerHTML = ""; // start empty
+        let i = 0;
+
+        // optional: show typing indicator first, then replace it
+        const typingIndicator = document.createElement("span");
+        typingIndicator.className = "inline-flex items-center gap-1";
+        typingIndicator.innerHTML = `<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>`;
+        bubble.appendChild(typingIndicator);
+        scrollToBottom();
+
+        // small delay so user sees typing dots
+        setTimeout(function typeChar() {
+          // remove typing indicator on first character
+          if (i === 0) bubble.innerHTML = "";
+
+          if (i < text.length) {
+            // append next character
+            bubble.innerHTML += text.charAt(i);
+            i++;
+            scrollToBottom();
+            // schedule next char
+            setTimeout(typeChar, speed);
+          } else {
+            // done
+            resolve();
+          }
+        }, 250); // typing indicator visible 250ms before start
+      });
+    }
+    /*
+    function botMessage(text){
+      const w = document.createElement("div");
+      w.className = "max-w-[80%]";
+      w.innerHTML = `<div class="p-3 rounded-2xl bg-blue-100 text-slate-800 shadow">${text}</div>`;
+      chatEl.appendChild(w);
+      scrollToBottom();
+    }
+    */
+
+function userMessage(text, reactionEmoji = null) {
+    const avatar = localStorage.getItem("student_avatar") || "🧑";
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "flex justify-end items-start gap-2 relative overflow-visible";
+
+    wrapper.innerHTML = `
+        <div class="p-3 rounded-2xl bg-blue-600 text-white shadow max-w-[75%]">
+        ${text}
+        </div>
+
+            <div class="relative overflow-visible flex-shrink-0">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center shadow-md">
+                <span class="text-3xl leading-none flex items-center justify-center">
+                    ${avatar}
+                </span>
+            </div>
+            <div class="particle-zone absolute bottom-0 right-0 overflow-visible"></div>
+            </div>
+    `;
+
+    chatEl.appendChild(wrapper);
+    scrollToBottom();
+
+    // HIỆU ỨNG PHÁO HOA (đối với câu thông tin cá nhân)
+    if (reactionEmoji === "firework") {
+        confetti({
+        particleCount: 60,
+        spread: 75,
+        origin: { x: 0.92, y: 0.85 }
+        });
+    }
+
+    // HIỆU ỨNG ICON BAY LÊN (đối với câu Likert)
+    if (reactionEmoji && reactionEmoji !== "firework") {
+    const zone = wrapper.querySelector(".particle-zone");
+
+    // Random số icon: 1 hoặc 2
+    const count = Math.random() > 0.5 ? 2 : 1;
+
+    for (let i = 0; i < count; i++) {
+        const e = document.createElement("div");
+        e.className = "emoji-particle";
+        e.textContent = reactionEmoji;
+
+        // random trái hoặc phải
+        const direction = "floatArcLeft" ;
+
+        // nhỏ delay để đẹp
+        e.style.animation = `${direction} 1.1s ease-out forwards`;
+        e.style.animationDelay = i * 0.1 + "s";
+
+        zone.appendChild(e);
+
+        setTimeout(() => e.remove(), 1600);
+    }
+    }
+
+
+    chatEl.appendChild(wrapper);
+    scrollToBottom();
+    }
+
+
+
+    /********************************************
+     * Render info questions
+     ********************************************/
+    function renderInfo() {
+      const q = infoQuestions[state.infoIndex];
+
+      const typing = botTyping();
+      setTimeout(() => {
+        typing.remove();
+        botMessage(`<strong>${q.question}</strong>`);
+
+        if (q.type === "text") {
+          inputArea.innerHTML = `
+            <div class="mt-3 flex gap-2">
+              <input id="textInput" class="flex-1 p-3 border rounded-xl" placeholder="Nhập tại đây...">
+              <button id="btnNext" class="px-4 py-2 bg-blue-600 text-white rounded-xl">Gửi</button>
+            </div>`;
+          document.querySelector("#btnNext").onclick = () => {
+            const val = document.querySelector("#textInput").value.trim();
+            if (!val) return alert("Vui lòng nhập");
+            userMessage(val, "firework");
+            state.responses[q.id] = val;
+            state.infoIndex++;
+            inputArea.innerHTML = "";
+            nextStep();
+          };
+        } else if (q.type === "choice") {
+          inputArea.innerHTML = `
+            <div class="mt-3 flex gap-2 flex-wrap">
+              ${q.choices.map(
+                c => `<button class="px-4 py-2 bg-white border rounded-xl hover:bg-blue-100 choiceBtn">${c}</button>`
+              ).join("")}
+            </div>`;
+          document.querySelectorAll(".choiceBtn").forEach(btn => {
+            btn.onclick = () => {
+              const val = btn.textContent;
+              userMessage(val, "firework");
+              state.responses[q.id] = val;
+              state.infoIndex++;
+              inputArea.innerHTML = "";
+              nextStep();
+
+            };
+          });
+        }
+      }, 600);
+    }
+
+    /********************************************
+     * Render Likert question (with emoji)
+     ********************************************/
+    function renderLikert() {
+      const qObj = likertQuestions[state.likertIndex];
+
+      const typing = botTyping();
+      setTimeout(() => {
+        typing.remove();
+        botMessage(`<strong>${qObj.group}</strong><br>${qObj.text}`);
+
+        inputArea.innerHTML = `
+          <div class="mt-3 flex gap-2 flex-wrap">
+            ${[1,2,3,4,5].map(num => `
+              <button class="likertBtn px-4 py-2 rounded-xl border bg-white hover:bg-blue-100">
+                <div class="text-2xl">${likertEmoji[num].icon}</div>
+                <div class="text-center text-xs text-slate-600">${likertEmoji[num].text}</div>
+              </button>
+            `).join("")}
+          </div>
+        `;
+
+        document.querySelectorAll(".likertBtn").forEach((btn, index) => {
+          btn.onclick = () => {
+                const num = index + 1;
+
+                // 1) Lấy emoji + text
+                const emo = likertEmoji[num].icon;
+                const emoText = likertEmoji[num].text;
+
+                // 2) Ghép thành câu hoàn chỉnh
+                // Ví dụ: "Tôi cảm thấy ... khi tham gia các tiết học trên lớp."
+                const original = qObj.text;
+                const finalSentence = original.replace("...", emoText.toLowerCase());
+
+                // 3) Hiển thị câu trả lời thật sự của học sinh
+                userMessage(`${emo} ${finalSentence}`, emo);
+
+                // 4) Lưu vào responses dưới dạng "câu hoàn chỉnh"
+                state.responses[`q${state.likertIndex+1}`] = finalSentence;
+
+                // 5) Chuyển câu
+                state.likertIndex++;
+                inputArea.innerHTML = "";
+                nextStep();
+          };
+        });
+
+      }, 600);
+    }
+
+    /********************************************
+     * Render final message input
+     ********************************************/
+    function renderFinal() {
+      const typing = botTyping();
+      setTimeout(() => {
+        typing.remove();
+        botMessage(finalMessagePrompt);
+
+        inputArea.innerHTML = `
+          <div class="mt-3">
+            <textarea id="finalText" rows="3" class="w-full p-3 border rounded-xl"
+              placeholder="Viết điều bạn muốn chia sẻ..."></textarea>
+
+            <button id="finishBtn" class="mt-3 w-full bg-blue-600 text-white py-3 rounded-xl">
+              Hoàn tất & Gửi
+            </button>
+          </div>
+        `;
+
+        document.querySelector("#finishBtn").onclick = () => {
+          const txt = document.querySelector("#finalText").value.trim();
+          if (txt) userMessage(txt);
+          state.responses["message"] = txt;
+          inputArea.innerHTML = "";
+          submitToBackend();
+        };
+      }, 600);
+    }
+
+    /********************************************
+     * SWITCH STEP
+     ********************************************/
+    function nextStep() {
+      if (state.step === 0) {
+        if (state.infoIndex < infoQuestions.length) return renderInfo();
+        state.step = 1;
+        return renderLikert();
+      }
+
+      if (state.step === 1) {
+        if (state.likertIndex < likertQuestions.length) return renderLikert();
+        state.step = 2;
+        return renderFinal();
+      }
+    }
+
+    /********************************************
+     * SUBMIT TO BACKEND
+     ********************************************/
+async function submitToBackend() {
+    botMessage("Emo đang lắng nghe và chuẩn bị lời khuyên cho bạn... 🤍");
+
+    const payload = {
+        name: state.responses.name,
+        class_: state.responses.class,
+        gender: state.responses.gender,
+        avatar: localStorage.getItem("student_avatar"),
+        q1: state.responses.q1,
+        q2: state.responses.q2,
+        q3: state.responses.q3,
+        q4: state.responses.q4,
+        q5: state.responses.q5,
+        q6: state.responses.q6,
+        q7: state.responses.q7,
+        q8: state.responses.q8,
+        message: state.responses.message,
+    };
+
+    try {
+        const res = await fetch("http://localhost:8000/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        // ✨ HIỂN THỊ PHẢN HỒI CỦA AI NGAY TRONG CHAT
+        botMessage(data.ai_response);
+
+    } catch (err) {
+        botMessage("Xin lỗi, hệ thống đang gặp lỗi. Bạn thử lại sau nhé 💗");
+        console.error(err);
+    }
+}
+
+
+    /********************************************
+     * START CHAT
+     ********************************************/
+    (function init(){
+      const t = botTyping();
+      setTimeout(() => {
+        t.remove();
+        botMessage("Xin chào! Mình là EmoMap — người bạn luôn lắng nghe cảm xúc của bạn 💙");
+        setTimeout(renderInfo, 800);
+      }, 800);
+    })();
+
+  </script>
+
+</body>
+</html>

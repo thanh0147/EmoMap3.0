@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EmoMap — Kết quả</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-50 min-h-screen flex items-center justify-center">
+  <div class="max-w-2xl bg-white rounded-2xl p-8 shadow-xl">
+    <h1 class="text-2xl font-semibold mb-4">Lời nhắn từ EmoMap</h1>
+    <div id="aiBox" class="p-4 bg-white rounded-lg border min-h-[120px] text-slate-700"></div>
+
+    <div class="mt-6 flex gap-3">
+      <a href="chat.html" class="px-4 py-2 bg-gray-200 rounded-lg">Quay lại</a>
+      <button id="downloadBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Tải bản tóm tắt (JSON)</button>
+    </div>
+  </div>
+
+  <script>
+    const ai_text = localStorage.getItem("ai_response") || "";
+    const last_submission = localStorage.getItem("last_submission") || null;
+    const aiBox = document.getElementById("aiBox");
+    aiBox.innerText = ai_text || "Xin lỗi, hiện chưa có phản hồi. Vui lòng thử lại sau.";
+
+    document.getElementById("downloadBtn").onclick = () => {
+      if (!last_submission) { alert("Không có dữ liệu để tải."); return; }
+      const blob = new Blob([last_submission], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "emomap_submission.json"; a.click();
+      URL.revokeObjectURL(url);
+    };
+  </script>
+</body>
+</html>
