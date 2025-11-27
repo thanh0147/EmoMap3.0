@@ -10,7 +10,7 @@ import models
 from typing import Optional
 from supabase import create_client, Client
 from dotenv import load_dotenv
-
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
 # Load biến môi trường từ file .env
 load_dotenv()
 
@@ -54,6 +54,13 @@ from database import get_supabase
 app = FastAPI()
 supabase = get_supabase()
 
+
+class WallMessage(BaseModel):
+    __tablename__ = "wall_messages"
+    id = Column(Integer, primary_key=True, index=True)
+    content = Column(String)
+    emotion_color = Column(String)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 @app.get("/test")
 def test():
     data = supabase.table("emomap").select("*").execute()
