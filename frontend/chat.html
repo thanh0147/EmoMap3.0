@@ -171,6 +171,186 @@
                 bottom: 90px;
             }
         }
+
+/* (Thêm vào cuối file style.css) */
+
+/* === CSS CHO TABS === */
+/* (Trong file style.css) */
+
+/* === 1. CONTAINER CHỨA NÚT (Sửa lỗi bị lệch) === */
+.tab-navigation {
+    display: flex;
+    justify-content: center; /* Căn giữa tuyệt đối */
+    align-items: center;
+    gap: 20px; /* Khoảng cách giữa 2 nút rộng rãi hơn */
+    margin: 30px auto; /* Tự động căn lề trái phải, cách trên dưới 30px */
+    width: 100%;
+    max-width: 600px; /* Giới hạn chiều rộng để không bị loãng trên PC */
+}
+
+/* === 2. STYLE CHUNG CHO CẢ 2 NÚT === */
+.tab-btn {
+    padding: 12px 25px; /* Nút to hơn, dễ bấm trên điện thoại */
+    border: none;
+    background-color: #f0f2f5; /* Màu nền xám nhạt tinh tế khi chưa chọn */
+    color: #64748b; /* Màu chữ xám ghi hiện đại */
+    border-radius: 50px; /* Bo tròn hoàn toàn (dạng viên thuốc) */
+    cursor: pointer;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 700; /* Chữ đậm */
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Hiệu ứng chuyển động mượt mà */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* Bóng nhẹ */
+    
+    /* Để icon và chữ thẳng hàng */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Hiệu ứng khi di chuột vào nút chưa chọn */
+.tab-btn:hover {
+    transform: translateY(-2px); /* Nổi lên nhẹ */
+    background-color: #e2e8f0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* === 3. TRẠNG THÁI "ACTIVE" (ĐANG CHỌN) - PHẦN QUAN TRỌNG === */
+
+/* Khi chọn nút KHẢO SÁT -> Màu Xanh Dương (Blue Gradient) */
+/* Selector này chọn nút có class 'active' và là nút đầu tiên */
+.tab-btn.active:first-child {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); /* Bóng phát sáng màu xanh */
+    transform: scale(1.05); /* Phóng to nhẹ để báo hiệu đang chọn */
+}
+
+/* Khi chọn nút BỨC TƯỜNG -> Màu Hồng Tím (Pink/Purple Gradient) */
+/* Selector này chọn nút có class 'active' và là nút thứ hai */
+.tab-btn.active:last-child {
+    background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(217, 70, 239, 0.4); /* Bóng phát sáng màu tím */
+    transform: scale(1.05);
+}
+
+/* Tối ưu cho điện thoại */
+@media (max-width: 600px) {
+    .tab-navigation {
+        gap: 10px; /* Giảm khoảng cách trên điện thoại */
+        padding: 0 10px;
+    }
+    .tab-btn {
+        padding: 10px 15px; /* Nút nhỏ hơn xíu cho vừa màn hình */
+        font-size: 0.9rem;
+        flex: 1; /* Chia đều chiều rộng cho 2 nút */
+        justify-content: center; /* Căn giữa nội dung trong nút */
+    }
+}
+/* === CSS CHO BỨC TƯỜNG (STICKY NOTES) === */
+.wall-input-area {
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.wall-input-area textarea {
+    width: 100%;
+    height: 80px;
+    padding: 10px;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    font-family: inherit;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
+.btn-post {
+    background-color: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.wall-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    padding: 10px;
+    min-height: 200px;
+}
+
+.sticky-note {
+    width: 140px;
+    height: 140px;
+    padding: 15px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+    font-family: 'Courier New', monospace; /* Font chữ viết tay giả */
+    font-size: 0.9rem;
+    color: #333;
+    overflow-y: auto;
+    border-radius: 2px 2px 15px 2px;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.sticky-note:hover {
+    transform: scale(1.1) rotate(0deg) !important;
+    z-index: 10;
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Mobile responsive cho bức tường */
+@media (max-width: 600px) {
+    .sticky-note {
+        width: 100%; /* Trên điện thoại, note full chiều rộng */
+        height: auto;
+        min-height: 80px;
+    }
+}
+
+/* (Thêm vào cuối file style.css) */
+
+/* === CĂN GIỮA NỘI DUNG CÁC TAB === */
+
+.tab-content {
+    width: 100%; /* Chiếm toàn bộ chiều rộng có thể */
+    display: flex; /* Sử dụng Flexbox để dàn trang */
+    flex-direction: column; /* Xếp các phần tử theo chiều dọc */
+    align-items: center; /* Căn giữa trục dọc -> Nội dung sẽ vào giữa */
+}
+
+/* Căn chỉnh riêng cho Form Khảo Sát */
+#emotionForm {
+    width: 100%; 
+    max-width: 800px; /* Giới hạn chiều rộng để không bị bè ra quá trên máy tính */
+    margin: 0 auto; /* Căn giữa margin (phương án dự phòng) */
+}
+
+/* Căn chỉnh riêng cho Bức Tường (để nó không bị lệch) */
+.wall-input-area {
+    width: 100%;
+    max-width: 600px; /* Bức tường nhập liệu nhỏ gọn hơn chút */
+    margin: 0 auto 20px auto;
+}
+
+/* Đảm bảo container chính bao quanh tất cả cũng được căn giữa */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
   </style>
 
 </head>
@@ -191,7 +371,16 @@
     <button class="chat-btn-float" onclick="toggleChat()">
         💬
     </button>
-  <div class="max-w-2xl w-full fade-up">
+
+
+  <div class="container">
+        <div class="tab-navigation">
+            <button class="tab-btn active" onclick="switchTab('survey')">📝 Khảo sát</button>
+            <button class="tab-btn" onclick="switchTab('wall')">💌 Bức Tường Ẩn Danh</button>
+        </div>
+
+        <div id="tab-survey" class="tab-content active">
+                <div class="max-w-2xl w-full fade-up">
 
     <div class="bg-white/80 backdrop-blur-xl p-6 rounded-3xl shadow-2xl">
 
@@ -214,6 +403,24 @@
       <div id="inputArea" class="mt-4"></div>
 
     </div>
+        </div>
+
+        <div id="tab-wall" class="tab-content" style="display: none;">
+            <div class="wall-input-area">
+                <h3>Góc giải tỏa: "Điều em chưa dám nói"</h3>
+                <p>Mọi chia sẻ đều ẩn danh. AI sẽ chọn màu sắc cho tâm trạng của bạn.</p>
+                <textarea id="noteInput" placeholder="Viết tâm sự của bạn vào đây..."></textarea>
+                <button type="button" class="btn-post" onclick="postNote()">Dán lên tường</button>
+            </div>
+            
+            <div id="wall-container" class="wall-container">
+                <p style="text-align:center; color:#666;">Đang tải tâm sự...</p>
+            </div>
+        </div>
+
+    </div>
+  
+
   </div>
 
   <!-- MAIN SCRIPT -->
@@ -639,6 +846,93 @@ async function submitToBackend() {
                 btn.innerHTML = "💬"; // Đổi icon nút về lại chat
             }
         }
+
+// (Trong file script.js)
+
+// 1. --- LOGIC CHUYỂN TAB ---
+window.switchTab = function(tabName) {
+    // Ẩn tất cả nội dung tab
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    // Bỏ class active ở tất cả nút
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+    // Hiện tab được chọn
+    document.getElementById(`tab-${tabName}`).style.display = 'flex';
+    // Thêm class active cho nút được chọn (tìm theo text hoặc thứ tự, ở đây làm đơn giản)
+    const btns = document.querySelectorAll('.tab-btn');
+    if(tabName === 'survey') btns[0].classList.add('active');
+    else {
+        btns[1].classList.add('active');
+        loadNotes(); // Tải tin nhắn khi mở tab wall
+    }
+}
+
+// 2. --- LOGIC BỨC TƯỜNG (Dán vào cuối file hoặc trong DOMContentLoaded) ---
+const BACKEND_URL = "https://emomap-backend.onrender.com"; // Đảm bảo biến này đã có
+
+window.loadNotes = async function() {
+    const wallContainer = document.getElementById('wall-container');
+    try {
+        const res = await fetch(`${BACKEND_URL}/get-messages`);
+        const notes = await res.json();
+        
+        wallContainer.innerHTML = '';
+        if (notes.length === 0) {
+            wallContainer.innerHTML = '<p>Chưa có tâm sự nào. Bạn hãy là người đầu tiên!</p>';
+            return;
+        }
+
+        notes.forEach(note => {
+            const div = document.createElement('div');
+            div.className = 'sticky-note';
+            div.style.backgroundColor = note.emotion_color;
+            div.innerText = note.content;
+            
+            // Xoay ngẫu nhiên nhẹ (-3 đến 3 độ) cho tự nhiên
+            const rotate = Math.floor(Math.random() * 6) - 3;
+            div.style.transform = `rotate(${rotate}deg)`;
+            
+            wallContainer.appendChild(div);
+        });
+    } catch (e) {
+        console.error(e);
+        wallContainer.innerHTML = '<p style="color:red">Lỗi tải dữ liệu :(</p>';
+    }
+}
+
+window.postNote = async function() {
+    const input = document.getElementById('noteInput');
+    const content = input.value.trim();
+    const btn = document.querySelector('.btn-post');
+
+    if(!content) return alert("Bạn chưa viết gì cả!");
+    if(content.length > 300) return alert("Tâm sự dài quá, hãy tóm tắt dưới 300 ký tự nhé!");
+
+    btn.disabled = true;
+    btn.innerText = "Đang dán...";
+
+    try {
+        const res = await fetch(`${BACKEND_URL}/post-message`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({content: content})
+        });
+
+        if(!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Lỗi server");
+        }
+
+        input.value = '';
+        alert("Đã dán lên tường thành công!");
+        loadNotes(); // Tải lại ngay
+    } catch (e) {
+        alert("Không thể gửi: " + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Dán lên tường";
+    }
+}
   </script>
 
 </body>

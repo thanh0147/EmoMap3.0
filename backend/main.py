@@ -318,3 +318,72 @@ async def get_by_class(class_name: str):
 async def get_by_gender(gender: str):
     res = supabase.table("emomap").select("*").eq("gender", gender).execute()
     return res.data
+# (Trong file main.py)
+
+# --- 1. THÊM IMPORT CẦN THIẾT (Nếu chưa có) ---
+from sqlalchemy import Column, Integer, String, DateTime, func # Đảm bảo đã import đủ
+
+# --- 2. ĐỊNH NGHĨA MODEL CSDL CHO BỨC TƯỜNG ---
+class WallMessage(database.Base):
+    __tablename__ = "wall_messages"
+    id = Column(Integer, primary_key=True, index=True)
+    content = Column(String)
+    emotion_color = Column(String) # Màu sắc do AI chọn
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+# Tạo bảng mới trong CSDL (Lệnh này sẽ tự chạy khi server khởi động)
+models.Base.metadata.create_all(bind=database.engine)
+
+# --- 3. ĐỊNH NGHĨA MODEL DỮ LIỆU (Pydantic) ---
+class MessageData(BaseModel):
+    content: str
+
+class MessageResponse(BaseModel):
+    content: str
+    emotion_color: str
+    created_at: str
+
+# --- 4. API ĐĂNG TIN NHẮN (POST) ---
+@app.post("/post-message")
+async def post_message(data: MessageData, db: Session = Depends(get_db)):
+    # Dùng Groq để kiểm duyệt và chọn màu cảm xúc
+    prompt = f"""
+    Phân tích ngắn gọn câu: "{data.content}"
+    1. Nếu chứa từ ngữ tục tĩu, chửi bậy, xúc phạm: Trả về "FILTERED".
+    2. Nếu an toàn, trả về mã HEX màu phù hợp cảm xúc:
+       - Tức giận/Bức xúc: #ff6b6b
+       - Buồn/Cô đơn: #4ecdc4
+       - Vui vẻ/Hy vọng: #ffe66d
+       - Lo lắng/Sợ hãi: #f7fff7
+       - Bình thường/Tâm sự: #dff9fb
+    CHỈ TRẢ VỀ MÃ MÀU HOẶC "FILTERED". KHÔNG GIẢI THÍCH.
+    """
+    try:
+        chat = groq_client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model=GROQ_MODEL,
+            temperature=0.1
+        )
+        result = chat.choices[0].message.content.strip()
+        
+        if "FILTERED" in result:
+             raise HTTPException(status_code=400, detail="Nội dung không phù hợp.")
+        
+        # Nếu mã màu hợp lệ, lưu vào CSDL
+        # (Sử dụng mã màu mặc định nếu AI trả về linh tinh)
+        color = result if result.startswith("#") else "#dff9fb" 
+        
+        new_msg = WallMessage(content=data.content, emotion_color=color)
+        db.add(new_msg)
+        db.commit()
+        return {"status": "success"}
+    except Exception as e:
+        print(f"Error posting message: {e}")
+        raise HTTPException(status_code=500, detail="Lỗi xử lý tin nhắn.")
+
+# --- 5. API LẤY TIN NHẮN (GET) ---
+@app.get("/get-messages", response_model=list[MessageResponse])
+async def get_messages(db: Session = Depends(get_db)):
+    # Lấy 50 tin nhắn mới nhất
+    msgs = db.query(WallMessage).order_by(WallMessage.created_at.desc()).limit(50).all()
+    return [MessageResponse(content=m.content, emotion_color=m.emotion_color, created_at=str(m.created_at)) for m in msgs]
