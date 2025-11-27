@@ -34,7 +34,12 @@ def get_supabase():
         supabase = get_supabase()
     """
     return supabase
-
+def get_db():
+    db = database.SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -325,16 +330,6 @@ async def get_by_gender(gender: str):
 # --- 1. THÊM IMPORT CẦN THIẾT (Nếu chưa có) ---
 from sqlalchemy import Column, Integer, String, DateTime, func # Đảm bảo đã import đủ
 
-# --- 2. ĐỊNH NGHĨA MODEL CSDL CHO BỨC TƯỜNG ---
-class WallMessage(database.BaseModel):
-    __tablename__ = "wall_messages"
-    id = Column(Integer, primary_key=True, index=True)
-    content = Column(String)
-    emotion_color = Column(String) # Màu sắc do AI chọn
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-
-# --- 3. ĐỊNH NGHĨA MODEL DỮ LIỆU (Pydantic) ---
 class MessageData(BaseModel):
     content: str
 
