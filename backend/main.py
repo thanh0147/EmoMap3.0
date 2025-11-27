@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session  # <-- Để dùng cho biến 'db: Session'
 from pydantic import BaseModel
 from supabase import create_client, Client
 from dotenv import load_dotenv
