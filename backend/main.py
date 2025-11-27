@@ -189,8 +189,7 @@ def send_alert_email(data: Survey, risk_score: int):
         Nội dung tâm sự:
         "{data.message}"
 
-        Vui lòng can thiệp sớm theo hướng dẫn chuyên môn.
-    """)
+        Vui lòng can thiệp sớm theo hướng dẫn chuyên môn.""")
 
     msg["Subject"] = f"[EmoMap] Cảnh báo cảm xúc nguy cơ cao — {data.name} ({risk_score})"
     msg["From"] = "emomap@system.com"
@@ -375,7 +374,7 @@ async def post_message(data: MessageData, db: Session = Depends(get_db)):
         # (Sử dụng mã màu mặc định nếu AI trả về linh tinh)
         color = result if result.startswith("#") else "#dff9fb" 
         
-        new_msg = WallMessage(content=data.content, emotion_color=color)
+        new_msg = database.WallMessage(content=data.content, emotion_color=color)
         db.add(new_msg)
         db.commit()
         return {"status": "success"}
@@ -387,5 +386,5 @@ async def post_message(data: MessageData, db: Session = Depends(get_db)):
 @app.get("/get-messages", response_model=list[MessageResponse])
 async def get_messages(db: Session = Depends(get_db)):
     # Lấy 50 tin nhắn mới nhất
-    msgs = db.query(WallMessage).order_by(WallMessage.created_at.desc()).limit(50).all()
+    msgs = db.query(database.WallMessage).order_by(database.WallMessage.created_at.desc()).limit(50).all()
     return [MessageResponse(content=m.content, emotion_color=m.emotion_color, created_at=str(m.created_at)) for m in msgs]
