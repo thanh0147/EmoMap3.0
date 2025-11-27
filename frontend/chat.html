@@ -90,12 +90,107 @@
         height: 65vh !important;
       }
     }
+
+    /* 1. Nút nổi (Floating Button) ở góc phải */
+        .chat-btn-float {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: #0084ff; /* Màu xanh kiểu Messenger */
+            color: white;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 9999;
+            font-size: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        }
+
+        .chat-btn-float:hover {
+            transform: scale(1.1); /* Phóng to nhẹ khi di chuột */
+        }
+
+        /* 2. Cửa sổ Chat (Ban đầu ẩn đi) */
+        .chat-window {
+            display: none; /* Mặc định ẩn */
+            position: fixed;
+            bottom: 90px; /* Nằm trên nút bấm một chút */
+            right: 20px;
+            width: 350px; /* Chiều rộng tiêu chuẩn của box chat */
+            height: 500px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 9999;
+            overflow: hidden;
+            flex-direction: column;
+            border: 1px solid #ddd;
+        }
+
+        /* 3. Thanh tiêu đề của cửa sổ chat */
+        .chat-header {
+            background-color: #0084ff;
+            color: white;
+            padding: 10px 15px;
+            font-family: sans-serif;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-close {
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        /* 4. Phần thân chứa Iframe */
+        .chat-body {
+            flex: 1; /* Chiếm hết khoảng trống còn lại */
+            height: 100%;
+            width: 100%;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Responsive: Trên điện thoại thì cho full màn hình hoặc nhỏ lại */
+        @media (max-width: 400px) {
+            .chat-window {
+                width: 90%;
+                right: 5%;
+                bottom: 90px;
+            }
+        }
   </style>
 
 </head>
 
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
 
+
+  <div id="myChatWindow" class="chat-window">
+        <div class="chat-header">
+            <span>Hỗ trợ trực tuyến</span>
+            <span class="chat-close" onclick="toggleChat()">&times;</span>
+        </div>
+        <div class="chat-body">
+            <iframe src="https://emomapv3.onrender.com" title="Chat Content"></iframe>
+        </div>
+    </div>
+
+    <button class="chat-btn-float" onclick="toggleChat()">
+        💬
+    </button>
   <div class="max-w-2xl w-full fade-up">
 
     <div class="bg-white/80 backdrop-blur-xl p-6 rounded-3xl shadow-2xl">
@@ -532,7 +627,18 @@ async function submitToBackend() {
         setTimeout(renderInfo, 800);
       }, 800);
     })();
+        function toggleChat() {
+            var chatWindow = document.getElementById("myChatWindow");
+            var btn = document.querySelector(".chat-btn-float");
 
+            if (chatWindow.style.display === "none" || chatWindow.style.display === "") {
+                chatWindow.style.display = "flex"; // Hiện chat box
+                btn.innerHTML = "✖"; // Đổi icon nút thành dấu X
+            } else {
+                chatWindow.style.display = "none"; // Ẩn chat box
+                btn.innerHTML = "💬"; // Đổi icon nút về lại chat
+            }
+        }
   </script>
 
 </body>
