@@ -55,12 +55,6 @@ app = FastAPI()
 supabase = get_supabase()
 
 
-class WallMessage(BaseModel):
-    __tablename__ = "wall_messages"
-    id = Column(Integer, primary_key=True, index=True)
-    content = Column(String)
-    emotion_color = Column(String)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
 @app.get("/test")
 def test():
     data = supabase.table("emomap").select("*").execute()
@@ -332,7 +326,7 @@ async def get_by_gender(gender: str):
 from sqlalchemy import Column, Integer, String, DateTime, func # Đảm bảo đã import đủ
 
 # --- 2. ĐỊNH NGHĨA MODEL CSDL CHO BỨC TƯỜNG ---
-class WallMessage(database.Base):
+class WallMessage(database.BaseModel):
     __tablename__ = "wall_messages"
     id = Column(Integer, primary_key=True, index=True)
     content = Column(String)
@@ -340,7 +334,7 @@ class WallMessage(database.Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 # Tạo bảng mới trong CSDL (Lệnh này sẽ tự chạy khi server khởi động)
-models.Base.metadata.create_all(bind=database.engine)
+database.BaseModel.metadata.create_all(bind=database.engine)
 
 # --- 3. ĐỊNH NGHĨA MODEL DỮ LIỆU (Pydantic) ---
 class MessageData(BaseModel):
