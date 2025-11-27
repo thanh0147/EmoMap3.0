@@ -333,8 +333,6 @@ class WallMessage(database.BaseModel):
     emotion_color = Column(String) # Màu sắc do AI chọn
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-# Tạo bảng mới trong CSDL (Lệnh này sẽ tự chạy khi server khởi động)
-database.BaseModel.metadata.create_all(bind=database.engine)
 
 # --- 3. ĐỊNH NGHĨA MODEL DỮ LIỆU (Pydantic) ---
 class MessageData(BaseModel):
