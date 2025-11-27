@@ -1,8 +1,6 @@
 import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
-from database import Base # Dòng này chắc chắn đã có sẵn ở đầu file của bạn
 
 load_dotenv()
 
@@ -15,9 +13,3 @@ def get_supabase() -> Client:
 
     return create_client(SUPABASE_URL, SUPABASE_KEY)
 
-class WallMessage(Base):
-    __tablename__ = "wall_messages"
-    id = Column(Integer, primary_key=True, index=True)
-    content = Column(String)
-    emotion_color = Column(String)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
