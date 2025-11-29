@@ -197,3 +197,13 @@ def get_messages():
         .limit(50)\
         .execute()
     return response.data
+
+@app.get("/admin/all-surveys")
+def get_all_surveys():
+    # Lấy toàn bộ kết quả khảo sát (Sắp xếp mới nhất trước)
+    # Lưu ý: Trong thực tế cần thêm xác thực (Authentication) ở đây
+    response = supabase.table("survey_responses")\
+        .select("*")\
+        .order("created_at", desc=True)\
+        .execute()
+    return response.data
