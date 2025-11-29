@@ -501,8 +501,8 @@ button {
   color: var(--primary);
   padding: 8px 24px;
   border-radius: 20px;
-  font-weight: 900;
-  font-size: 0.9rem;
+  font-weight: 700;
+  font-size: 50pt;
   margin-bottom: 25px;
   box-shadow: 0 4px 10px rgba(99, 102, 241, 0.1);
   text-transform: uppercase;
