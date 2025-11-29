@@ -1,16 +1,27 @@
+
 import os
 import json
 import re
 import random
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session  # <-- Để dùng cho biến 'db: Session'
 from pydantic import BaseModel
 from supabase import create_client, Client
 from groq import Groq
 from dotenv import load_dotenv
 
 # --- 1. CẤU HÌNH HỆ THỐNG ---
+import os
+import database 
+import models
+from typing import Optional
+from supabase import create_client, Client
+from dotenv import load_dotenv
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
+# Load biến môi trường từ file .env
 load_dotenv()
 
 # Kết nối Supabase
@@ -22,6 +33,53 @@ supabase: Client = create_client(url, key)
 groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 app = FastAPI()
+# Validate biến môi trường
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise ValueError("❌ Lỗi: Không tìm thấy SUPABASE_URL hoặc SUPABASE_KEY trong .env")
+
+# Tạo Supabase client (đúng kiểu)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+
+def get_supabase():
+    """
+    Hàm helper để import trong các file khác.
+    Usage:
+        from database import get_supabase
+        supabase = get_supabase()
+    """
+    return supabase
+def get_db():
+    db = database.SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+load_dotenv()
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# ----- Cấu hình AI (Groq + Qwen2.5-32B) -----
+client = Groq(api_key=GROQ_API_KEY)
+
+# ----- FastAPI -----
+
+from fastapi import FastAPI
+from database import get_supabase
+
+app = FastAPI()
+supabase = get_supabase()
+
+
+@app.get("/test")
+def test():
+    data = supabase.table("emomap").select("*").execute()
+    return {"total": len(data.data)}
+
 
 # Cấu hình CORS
 app.add_middleware(
@@ -95,6 +153,44 @@ def analyze_wall_message(content):
     }}
     """
     
+    # ---- 2) Chấm phần tâm sự ----
+    msg = (data.message or "").lower()
+    danger_words = ["bị đánh", "bị bắt nạt", "không muốn đến trường", 
+                    "tự tử", "muốn biến mất", "không chịu nổi", "bị xâm hại"]
+
+    for kw in danger_words:
+        if kw in msg:
+            score += 25
+
+    # ---- 3) Chấm độ dài tâm sự (ý nghĩa hơn = risk cao hơn) ----
+    length = len(msg.split())
+    if length > 15: score += 7
+    if length > 40: score += 5
+
+    # ---- Giới hạn 0–100 ----
+    return min(score, 100)
+
+import smtplib
+from email.mime.text import MIMEText
+
+def send_alert_email(data: Survey, risk_score: int):
+    msg = MIMEText(f"""
+        ⚠️ CẢNH BÁO RỦI RO CAO HỌC ĐƯỜNG
+
+        Học sinh: {data.name}
+        Lớp: {data.class_}
+        Giới tính: {data.gender}
+        Điểm rủi ro: {risk_score}
+
+        Nội dung tâm sự:
+        "{data.message}"
+
+        Vui lòng can thiệp sớm theo hướng dẫn chuyên môn.""")
+
+    msg["Subject"] = f"[EmoMap] Cảnh báo cảm xúc nguy cơ cao — {data.name} ({risk_score})"
+    msg["From"] = "emomap@system.com"
+    msg["To"] = "txt0147.03@gmail.com"
+
     try:
         completion = groq_client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
