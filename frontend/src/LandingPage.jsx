@@ -45,7 +45,7 @@ const LandingPage = () => {
           className="start-btn"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => navigate('/Student')}
+          onClick={() => navigate('/student')}
         >
           Bắt đầu chia sẻ ngay 🚀
         </motion.button>

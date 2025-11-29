@@ -13,6 +13,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage/>} />
+        <Route path="/student" element={<StudentApp />} />
         <Route path="/admin" element={<AdminDashboard/>} />
       </Routes>
     </Router>
