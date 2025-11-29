@@ -18,7 +18,7 @@ const LandingPage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <div className="logo-badge">🌱 Emo Buddy</div>
+        <div className="logo-badge"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="20%"/>EmoMap</div>
         
         <h1>Người bạn lắng nghe<br/>tâm hồn <span className="highlight">Gen Z</span></h1>
         
@@ -45,7 +45,7 @@ const LandingPage = () => {
           className="start-btn"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => navigate('/StudentApp')}
+          onClick={() => navigate('/Student')}
         >
           Bắt đầu chia sẻ ngay 🚀
         </motion.button>
