@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import StudentApp from './StudentApp';
-import AdminDashboard from './AdminDashboard';
+import StudentApp from './Student';
+import AdminDashboard from './Admin';
 
 // App.jsx bây giờ chỉ đóng vai trò định tuyến (Điều hướng)
 // - Vào trang chủ (/) -> Hiện giao diện Học sinh
