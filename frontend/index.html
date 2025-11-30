@@ -12,103 +12,245 @@
     <meta property="og:url" content="https://emomap.onrender.com/" />
     <meta property="og:type" content="Website KHKT" />
     <style>
-      /* 1. Nút nổi (Floating Button) ở góc phải */
-        .chat-btn-float {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            background-color: #0084ff; /* Màu xanh kiểu Messenger */
-            color: white;
-            border-radius: 50%;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            cursor: pointer;
-            z-index: 9999;
-            font-size: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.3s;
-        }
+   /* BONG BÓNG */
+    .chat-bubble {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      box-shadow: 0 8px 20px rgba(3, 7, 18, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 100000;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .chat-bubble:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 14px 30px rgba(3,7,18,0.35); }
 
-        .chat-btn-float:hover {
-            transform: scale(1.1); /* Phóng to nhẹ khi di chuột */
-        }
+    /* icon inside */
+    .chat-bubble svg { width: 28px; height: 28px; fill: white; }
 
-        /* 2. Cửa sổ Chat (Ban đầu ẩn đi) */
-        .chat-window {
-            display: none; /* Mặc định ẩn */
-            position: fixed;
-            bottom: 90px; /* Nằm trên nút bấm một chút */
-            right: 20px;
-            width: 350px; /* Chiều rộng tiêu chuẩn của box chat */
-            height: 500px;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            z-index: 9999;
-            overflow: hidden;
-            flex-direction: column;
-            border: 1px solid #ddd;
-        }
+    /* small unread indicator */
+    .chat-bubble .badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 14px;
+      height: 14px;
+      background: #ef4444;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      display: inline-block;
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      70% { transform: scale(1.6); opacity: 0.35; }
+      100% { transform: scale(1.0); opacity: 0; }
+    }
 
-        /* 3. Thanh tiêu đề của cửa sổ chat */
-        .chat-header {
-            background-color: #0084ff;
-            color: white;
-            padding: 10px 15px;
-            font-family: sans-serif;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    /* MODAL */
+    .chat-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100000;
+      padding: 18px;
+    }
+    .chat-modal {
+      width: min(980px, 96vw);
+      height: min(720px, 90vh);
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 22px 50px rgba(2,6,23,0.6);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .chat-modal header {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 10px 14px;
+      background: linear-gradient(90deg,#f8fafc,#eef2ff);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .chat-modal header .title { font-weight:600; font-size:16px; color:#0f172a; }
+    .chat-modal header .controls { display:flex; gap:8px; align-items:center; }
 
-        .chat-close {
-            cursor: pointer;
-            font-size: 20px;
-        }
+    .chat-modal iframe {
+      width:100%;
+      height:100%;
+      border:0;
+      flex: 1 1 auto;
+      background: #fff;
+    }
 
-        /* 4. Phần thân chứa Iframe */
-        .chat-body {
-            flex: 1; /* Chiếm hết khoảng trống còn lại */
-            height: 100%;
-            width: 100%;
-        }
+    .chat-modal .close-btn {
+      background:transparent;
+      border:0;
+      font-size:18px;
+      cursor:pointer;
+      padding:6px;
+      border-radius:6px;
+    }
+    .chat-modal .close-btn:hover { background: rgba(15,23,42,0.06); }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Responsive: Trên điện thoại thì cho full màn hình hoặc nhỏ lại */
-        @media (max-width: 400px) {
-            .chat-window {
-                width: 90%;
-                right: 5%;
-                bottom: 90px;
-            }
-        }
+    /* small screens: full screen modal */
+    @media (max-width: 640px) {
+      .chat-modal {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+      }
+      .chat-bubble { right: 14px; bottom: 14px; width:56px; height:56px; }
+    }
     </style>
   </head>
   <body>
-    <div id="root"></div>
-       <div id="myChatWindow" class="chat-window">
-        <div class="chat-header">
-            <span>Hỗ trợ trực tuyến</span>
-            <span class="chat-close" onclick="toggleChat()">&times;</span>
-        </div>
-        <div class="chat-body">
-            <iframe src="https://emomapv3.onrender.com" title="Chat Content"></iframe>
-        </div>
-    </div>
 
-    <button class="chat-btn-float" onclick="toggleChat()">
-        💬
-    </button>
+      <!-- BONG BÓNG CHAT -->
+  <button id="chatBubble" class="chat-bubble" aria-label="Open chat">
+    <!-- SVG chat icon -->
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20 2H4C2.895 2 2 2.895 2 4v12c0 1.105.895 2 2 2h3v3l4-3h7c1.105 0 2-.895 2-2V4c0-1.105-.895-2-2-2z"></path>
+    </svg>
+    <span class="badge" id="chatBadge" title="New"></span>
+  </button>
+
+  <!-- MODAL -->
+  <div id="chatBackdrop" class="chat-modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="chat-modal" role="document">
+      <header>
+        <div class="title">Hộp trò chuyện</div>
+        <div class="controls">
+          <button id="openNewTab" title="Mở sang tab mới" class="close-btn" aria-label="Open in new tab">↗</button>
+          <button id="closeModal" class="close-btn" aria-label="Close">✕</button>
+        </div>
+      </header>
+
+      <!-- Iframe chứa trang đích -->
+      <iframe id="chatIframe" src="about:blank" title="Chat content"></iframe>
+    </div>
+  </div>
+
+    <div id="root"></div>
     <script type="module" src="/src/main.jsx"> </script>
+      <script>
+
+        
+    // === Cấu hình: đổi link ở đây ===
+    // Bạn có thể gán link trực tiếp như:
+    let popupUrl = "https://example.com"; // <-- đổi thành link bạn muốn
+
+    // Hoặc: nếu muốn set qua data attribute trên button, uncomment dòng sau:
+    // const bubbleBtn = document.getElementById('chatBubble');
+    // popupUrl = bubbleBtn.dataset.link || popupUrl;
+
+    // DOM
+    const bubble = document.getElementById('chatBubble');
+    const backdrop = document.getElementById('chatBackdrop');
+    const iframe = document.getElementById('chatIframe');
+    const closeBtn = document.getElementById('closeModal');
+    const openNewTabBtn = document.getElementById('openNewTab');
+    const badge = document.getElementById('chatBadge');
+
+    // Mở modal và load iframe
+    function openModal() {
+      // set src
+      iframe.src = popupUrl;
+
+      // show modal
+      backdrop.style.display = "flex";
+      backdrop.setAttribute('aria-hidden', 'false');
+
+      // hide badge after opened
+      if (badge) badge.style.display = 'none';
+    }
+
+    // Đóng modal và clear iframe (giúp dừng media nếu có)
+    function closeModal() {
+      backdrop.style.display = "none";
+      backdrop.setAttribute('aria-hidden', 'true');
+      // Clear src to stop video/audio in iframe
+      iframe.src = "about:blank";
+    }
+
+    // Fallback: nếu iframe bị chặn bởi X-Frame-Options, mở tab mới
+    function tryOpenInIframeOrTab(url) {
+      // Thử load vào iframe, sau đó kiểm tra xem có lỗi load bằng việc chờ 1.2s
+      iframe.src = url;
+      backdrop.style.display = "flex";
+      backdrop.setAttribute('aria-hidden', 'false');
+
+      // Nếu trong vòng 1200ms iframe contentWindow.location vẫn about:blank (có khả năng bị chặn)
+      setTimeout(() => {
+        let blocked = false;
+        try {
+          // Một số site sẽ throw cross-origin access; dùng heuristic: nếu iframe.contentWindow.location.href throws -> assume cross-origin allowed but not blocked.
+          // Nhưng nếu iframe.contentDocument.body is null or throws, it might be blocked.
+          // Vì cross-origin access often blocks reading, we instead check readyState by posting message won't work; use fallback: if iframe.contentWindow.length === 0 maybe blocked.
+          // Heuristic: if the iframe height is 0 or blank, fallback.
+          // Simpler and reliable: after timeout, if iframe.contentWindow.location.href === 'about:blank' then blocked.
+          if (iframe.contentWindow && iframe.contentWindow.location && iframe.contentWindow.location.href === 'about:blank') {
+            blocked = true;
+          }
+        } catch (e) {
+          // Cross-origin access - can't read but usually means iframe did load; treat as not blocked.
+          blocked = false;
+        }
+
+        if (blocked) {
+          // đóng modal UI và mở tab mới
+          backdrop.style.display = "none";
+          window.open(url, "_blank", "noopener");
+        }
+      }, 1200);
+    }
+
+    // Events
+    bubble.addEventListener('click', (e) => {
+      // Option: dùng fallback-aware loader
+      tryOpenInIframeOrTab(popupUrl);
+    });
+
+    closeBtn.addEventListener('click', closeModal);
+
+    // Click backdrop để đóng nếu click ngoài modal content
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) closeModal();
+    });
+
+    // Mở trang trong tab mới explicit
+    openNewTabBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.open(popupUrl, "_blank", "noopener");
+    });
+
+    // ESC để đóng
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && backdrop.style.display === 'flex') closeModal();
+    });
+
+    // optional: hide badge after a few seconds
+    setTimeout(() => {
+      if (badge) badge.style.display = 'inline-block';
+    }, 600);
+
+    // Accessibility: focus trap minimal (focus close button when modal opens)
+    backdrop.addEventListener('transitionend', () => {
+      if (backdrop.style.display === 'flex') {
+        closeBtn.focus();
+      }
+    });
+  </script>
   </body>
 </html>
