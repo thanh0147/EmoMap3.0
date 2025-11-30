@@ -11,6 +11,16 @@ const getSafeImageUrl = (url) => {
   if (url.startsWith('/')) return url;
   return `https://corsproxy.io/?${encodeURIComponent(url)}`;
 };
+// Hook kiểm tra Mobile
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  return isMobile;
+}
 
 // --- DANH SÁCH STICKER (DÙNG LINK ẢNH TRỰC TIẾP TỪ CDN - AN TOÀN & ĐẸP) ---
 // Sử dụng bộ Twemoji qua CDN để đảm bảo không lỗi CORS và luôn hiển thị đẹp
@@ -85,15 +95,17 @@ const WALL_ITEMS = [
 ];
 
 // --- COMPONENT: BẢNG GHIM (CORK BOARD) ---
-const PinBoard = ({ item }) => {
+const PinBoard = ({ item, isMobile }) => {
   const [hovered, setHover] = useState(false);
   useCursor(hovered); 
   const [clicked, setClicked] = useState(false);
-
+// Tính toán Scale dựa trên mobile (nhỏ hơn chút để vừa màn hình)
+    const scaleBase = isMobile ? 0.8 : 1; 
+    const finalScale = clicked ? scaleBase * 1.2 : scaleBase;
   // Tạo dữ liệu ngẫu nhiên cho mỗi bảng
   const randomData = useMemo(() => {
     const noteColor = NOTE_COLORS[Math.floor(Math.random() * NOTE_COLORS.length)];
-    
+      
     // --- LOGIC MỚI: CHỈ ĐẶT STICKER Ở 4 GÓC ---
     // Kích thước bảng khoảng 3.2 x 2.2
     // Kích thước nội dung (giấy/ảnh) khoảng 2.5 x 1.5 hoặc 2.8 x 1.8
@@ -334,9 +346,13 @@ const EndDoor = () => {
 const ClassroomScene = () => {
   const scroll = useScroll();
   const { camera, gl } = useThree();
-
+  const isMobile = useIsMobile(); // Phát hiện Mobile
   gl.shadowMap.enabled = true;
-
+  // --- CẤU HÌNH KÍCH THƯỚC DỰA TRÊN THIẾT BỊ ---
+  const wallDist = isMobile ? 3.2 : 6;   // Tường hẹp lại (3.2 vs 6)
+  const itemDist = isMobile ? 2.0 : 4;   // Bảng treo gần hơn (2.0 vs 4)
+  const deskDist = isMobile ? 1.4 : 2.5; // Bàn ghế gần hơn (1.4 vs 2.5)
+  const deskScale = isMobile ? 0.8 : 1;  // Bàn ghế nhỏ lại chút
   useFrame((state, delta) => {
     const targetZ = -scroll.offset * 28; 
     camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.08);
@@ -347,7 +363,8 @@ const ClassroomScene = () => {
     camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, lookX, 0.05);
     camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, lookY, 0.05);
 
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, 1.7 + Math.sin(state.clock.elapsedTime * 6) * 0.02, 0.1);
+    const camHeight = isMobile ? 1.5 : 1.7;
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, camHeight + Math.sin(state.clock.elapsedTime * 6) * 0.02, 0.1);
   });
 
   return (
