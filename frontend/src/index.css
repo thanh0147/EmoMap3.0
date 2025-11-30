@@ -20,8 +20,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-button { font-family: inherit; }
+button {
+  font-family: inherit;
+}
 
+/* Container chung cho App Học sinh */
 .app-container {
   max-width: 900px;
   margin: 0 auto;
@@ -159,11 +162,12 @@ button { font-family: inherit; }
 .rating-label { font-size: 0.9rem; font-weight: 600; }
 
 .mini-form, .mini-input { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-.mini-form input, .mini-input textarea { padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+.mini-form input, .mini-input textarea, .mini-input select { padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
 .mini-form input:focus, .mini-input textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
 .mini-form button, .mini-input button { padding: 10px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
 .mini-form button:hover, .mini-input button:hover { background: var(--primary-hover); }
-
+select 
+{ padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
 .typing span { display: inline-block; width: 6px; height: 6px; background: #9ca3af; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; margin: 0 2px; }
 .typing span:nth-child(1) { animation-delay: -0.32s; } .typing span:nth-child(2) { animation-delay: -0.16s; }
 @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
@@ -214,7 +218,6 @@ button { font-family: inherit; }
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  margin-top: 30px;
   padding-bottom: 100px;
   gap: 0;
 }
@@ -266,11 +269,22 @@ button { font-family: inherit; }
 .sticky-note:hover .sticker-deco { transform: scale(1.4) rotate(20deg); }
 
 /* =========================================
-   5. LANDING PAGE STYLES (NEW - 3 PAGES)
+   5. LANDING PAGE STYLES (MODERN SCROLLYTELLING)
    ========================================= */
 .progress-bar { position: fixed; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, var(--primary), #d946ef); transform-origin: 0%; z-index: 9999; }
 .landing-wrapper { width: 100%; overflow-x: hidden; background: white; }
-.snap-section { min-height: 90vh; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; padding: 100px 20px; }
+
+.snap-section { 
+  min-height: 90vh; 
+  width: 100%; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  position: relative; 
+  overflow: hidden; 
+  padding: 100px 20px; 
+}
+
 .hero-section { min-height: 100vh; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.8), rgba(255,255,255,0)); }
 .alt-bg { background-color: #f8fafc; }
 
@@ -301,76 +315,35 @@ button { font-family: inherit; }
 .icon-circle.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
 .icon-circle.purple { background: linear-gradient(135deg, #a855f7, #7c3aed); }
 .icon-circle.green { background: linear-gradient(135deg, #10b981, #059669); }
-.demo-grid-4 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); 
-  gap: 30px;
-  width: 100%;
-  margin-top: 40px;
-}
 
-.demo-card {
-  background: white;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-  border: 1px solid rgba(0,0,0,0.05);
-  transition: transform 0.3s;
-}
+/* -- Trang 2: Demo 4 Ô -- */
+.demo-grid-4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; width: 100%; margin-top: 40px; }
 
-.demo-card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 25px 50px rgba(0,0,0,0.15);
-}
+.demo-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); transition: transform 0.3s; cursor: pointer; }
+.demo-card:hover { transform: scale(1.02); box-shadow: 0 25px 50px rgba(0,0,0,0.15); }
 
-.browser-header {
-  height: 30px;
-  background: #f1f5f9;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
-  gap: 6px;
-}
+.browser-header { height: 30px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; padding: 0 12px; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot.red { background: #ef4444; } .dot.yellow { background: #f59e0b; } .dot.green { background: #22c55e; }
 
-/* CẬP NHẬT PHẦN NÀY: Để ảnh hiển thị đẹp */
-.image-placeholder {
-  height: 220px; /* Chiều cao cố định cho khung ảnh */
-  width: 100%;
-  background-color: #f3f4f6; /* Màu nền dự phòng khi chưa có ảnh */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden; /* Cắt phần thừa của ảnh */
-  position: relative;
-}
+.image-placeholder { height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; gap: 10px; position: relative; background-color: #f3f4f6; overflow: hidden; }
+.image-placeholder img { width: 100%; height: 100%; object-fit: cover; object-position: top center; transition: transform 0.5s ease; }
+.demo-card:hover .image-placeholder img { transform: scale(1.05); }
 
-.image-placeholder img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Quan trọng: Giúp ảnh lấp đầy khung mà không bị méo */
-  object-position: top center; /* Ưu tiên hiển thị phần trên của ảnh */
-  transition: transform 0.5s ease;
-}
+/* Background màu dự phòng cho ảnh demo */
+.image-placeholder.blue-bg { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+.image-placeholder.purple-bg { background: linear-gradient(135deg, #f3e8ff, #d8b4fe); }
+.image-placeholder.orange-bg { background: linear-gradient(135deg, #ffedd5, #fdba74); }
+.image-placeholder.green-bg { background: linear-gradient(135deg, #dcfce7, #86efac); }
 
-/* Hiệu ứng zoom nhẹ ảnh khi di chuột vào card */
-.demo-card:hover .image-placeholder img {
-  transform: scale(1.05);
-}
+.fallback-icon { z-index: 1; position: absolute; }
+.image-placeholder span { font-weight: 600; font-size: 1.1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1; }
 
-/* Xóa các class màu nền cũ (blue-bg, purple-bg...) vì giờ đã dùng ảnh thật */
+.card-desc { padding: 15px; text-align: center; font-size: 0.95rem; color: #4b5563; font-weight: 600; background: white; border-top: 1px solid #f1f5f9; }
 
-.card-desc {
-  padding: 15px;
-  text-align: center;
-  font-size: 0.95rem;
-  color: #4b5563;
-  font-weight: 600;
-  background: white;
-  border-top: 1px solid #f1f5f9;
-}
 /* -- Trang 3: CTA & Footer -- */
 .scroll-indicator { position: absolute; bottom: 30px; display: flex; flex-direction: column; align-items: center; gap: 8px; color: #9ca3af; font-size: 0.9rem; font-weight: 500; opacity: 0.8; cursor: pointer; }
+
 .start-btn-big { background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%); color: white; border: none; padding: 25px 60px; font-size: 1.5rem; border-radius: 60px; font-weight: 800; cursor: pointer; box-shadow: 0 20px 50px rgba(99, 102, 241, 0.4); display: flex; align-items: center; gap: 15px; transition: all 0.3s; margin-top: 30px; }
 .start-btn-big:hover { box-shadow: 0 30px 70px rgba(99, 102, 241, 0.6); transform: translateY(-5px) scale(1.05); }
 
@@ -421,4 +394,9 @@ tr:last-child td { border-bottom: none; }
   .stats-grid, .charts-section { grid-template-columns: 1fr; }
   .admin-header { flex-direction: column; gap: 15px; text-align: center; }
   .login-box { margin: 20px; }
+  .landing-content h1 { font-size: 2.5rem; }
+  .bubble { max-width: 85%; font-size: 0.95rem; }
+  .avatar { width: 35px; height: 35px; font-size: 1.2rem; }
+  .wall-container { padding: 15px; }
+  .sticky-wall { padding-bottom: 60px; }
 }
