@@ -14,156 +14,148 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <style>
-/* CSS cho nút Chat Bubble */
-        .chat-bubble-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Màu Gradient hiện đại */
-            border-radius: 50%;
-            color: white;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(118, 75, 162, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nảy */
-            z-index: 9999;
-        }
+/* --- Bong bóng ở góc phải --- */
+.chat-bubble {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    background: #4f46e5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    z-index: 9999;
+    transition: 0.2s;
+}
+.chat-bubble:hover {
+    transform: scale(1.08);
+}
 
-        .chat-bubble-btn:hover {
-            transform: scale(1.1); /* Phóng to khi di chuột */
-            box-shadow: 0 15px 35px rgba(118, 75, 162, 0.5);
-        }
+/* --- Backdrop mờ --- */
+.popup-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
 
-        /* CSS cho Popup (Khung chat) */
-        .chat-popup {
-            position: fixed;
-            bottom: 100px; /* Nằm trên nút chat */
-            right: 30px;
-            width: 380px;
-            height: 550px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px); /* Hiệu ứng kính mờ (Glassmorphism) */
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            display: none; /* Ẩn mặc định */
-            flex-direction: column;
-            z-index: 9998;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
+/* --- Cửa sổ pop-up --- */
+.popup-window {
+    width: 900px;
+    height: 600px;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.45);
+    animation: scaleIn 0.25s ease-out;
+}
 
-        /* Header của Popup */
-        .popup-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-        }
+@keyframes scaleIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
 
-        .popup-header h3 {
-            margin: 0;
-            font-size: 16px;
-            font-family: sans-serif;
-        }
+/* --- Thanh tiêu đề pop-up --- */
+.popup-header {
+    padding: 12px 16px;
+    background: #f3f3f7;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+}
 
-        .close-btn {
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .close-btn:hover {
-            transform: rotate(90deg);
-        }
+/* --- Nút đóng --- */
+.close-btn {
+    cursor: pointer;
+    background: #e11d48;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+.close-btn:hover {
+    background: #be123c;
+}
 
-        /* Nội dung Iframe */
-        .popup-content {
-            flex: 1;
-            width: 100%;
-            height: 100%;
-        }
-        
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+/* --- Iframe --- */
+.popup-content {
+    flex: 1;
+    border: none;
+    width: 100%;
+    height: 100%;
+}
 
-        /* Responsive cho Mobile */
-        @media (max-width: 450px) {
-            .chat-popup {
-                width: 90%;
-                right: 5%;
-                bottom: 100px;
-                height: 70vh;
-            }
-        }
+/* --- Responsive nhỏ hơn --- */
+@media (max-width: 950px) {
+    .popup-window {
+        width: 95%;
+        height: 80%;
+    }
+}
     </style>
   </head>
   <body>
 
-    <div id="myChatPopup" class="chat-popup animate__animated animate__zoomIn">
-        <div class="popup-header">
-            <h3>Hỗ trợ trực tuyến</h3>
-            <button class="close-btn" onclick="toggleChat()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="popup-content">
-            <iframe src="https://emomapv3.onrender.com/" title="Chat Content"></iframe>
+    <!-- Bong bóng chat -->
+    <div class="chat-bubble" id="openPopup">
+        💬
+    </div>
+
+    <!-- Backdrop + Pop-up -->
+    <div class="popup-backdrop" id="popupBackdrop">
+        <div class="popup-window">
+            <div class="popup-header">
+                Cửa sổ chat
+                <button class="close-btn" id="closePopup">Đóng</button>
+            </div>
+            <iframe id="popupIframe" class="popup-content" src="about:blank"></iframe>
         </div>
     </div>
-    
-    <button class="chat-bubble-btn animate__animated animate__bounceIn" onclick="toggleChat()">
-        <i class="fa-solid fa-comment-dots"></i>
-    </button>
 
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"> </script>
       
     <script>
-function toggleChat() {
-            var popup = document.getElementById("myChatPopup");
-            var btnIcon = document.querySelector(".chat-bubble-btn i");
+// Link trang web bạn muốn nhúng:
+const popupUrl = "https://emomapv3.onrender.com/";  // <--- thay link ở đây
 
-            if (popup.style.display === "none" || popup.style.display === "") {
-                // Mở popup
-                popup.style.display = "flex";
-                // Thêm hiệu ứng animation mở
-                popup.classList.remove("animate__zoomOut");
-                popup.classList.add("animate__zoomIn");
-                
-                // Đổi icon nút thành dấu X (tùy chọn)
-                btnIcon.classList.remove("fa-comment-dots");
-                btnIcon.classList.add("fa-xmark");
-            } else {
-                // Đóng popup
-                // Thêm hiệu ứng animation đóng trước khi ẩn hẳn
-                popup.classList.remove("animate__zoomIn");
-                popup.classList.add("animate__zoomOut");
-                
-                // Đổi icon nút về lại chat
-                btnIcon.classList.remove("fa-xmark");
-                btnIcon.classList.add("fa-comment-dots");
+const openBtn = document.getElementById("openPopup");
+const closeBtn = document.getElementById("closePopup");
+const backdrop = document.getElementById("popupBackdrop");
+const iframe = document.getElementById("popupIframe");
 
-                // Đợi animation chạy xong (0.3s) rồi mới ẩn div
-                setTimeout(function() {
-                    popup.style.display = "none";
-                }, 300);
-            }
-        }
-        
-    
+// mở pop-up
+openBtn.addEventListener("click", () => {
+    iframe.src = popupUrl;
+    backdrop.style.display = "flex";
+});
+
+// đóng pop-up
+closeBtn.addEventListener("click", () => {
+    backdrop.style.display = "none";
+    iframe.src = "about:blank"; // dừng trang bên trong
+});
+
+// click ra ngoài để đóng
+backdrop.addEventListener("click", (e) => {
+    if (e.target === backdrop) {
+        backdrop.style.display = "none";
+        iframe.src = "about:blank";
+    }
+});
   </script>
   </body>
 </html>
