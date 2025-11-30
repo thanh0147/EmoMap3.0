@@ -34,9 +34,9 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="center-text-group"
           >
-            <div className="badge">✨ Dự án Tâm lý học đường 2025</div>
+            <div className="badge">✨ Dự án sàng lọc sớm bạo lực học đường 2025</div>
             <h1 className="hero-title">
-              Emo Buddy <br />
+              EmoMap <br />
               <span className="gradient-text">Người bạn thấu cảm</span>
             </h1>
             <p className="hero-subtitle">
