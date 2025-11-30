@@ -11,6 +11,88 @@
     <meta property="og:image" content="https://i.ibb.co/q3ymzcdJ/Th-m-ti-u-ph-1.png" />
     <meta property="og:url" content="https://emomap.onrender.com/" />
     <meta property="og:type" content="Website KHKT" />
+    <style>
+      /* 1. Nút nổi (Floating Button) ở góc phải */
+        .chat-btn-float {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: #0084ff; /* Màu xanh kiểu Messenger */
+            color: white;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 9999;
+            font-size: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        }
+
+        .chat-btn-float:hover {
+            transform: scale(1.1); /* Phóng to nhẹ khi di chuột */
+        }
+
+        /* 2. Cửa sổ Chat (Ban đầu ẩn đi) */
+        .chat-window {
+            display: none; /* Mặc định ẩn */
+            position: fixed;
+            bottom: 90px; /* Nằm trên nút bấm một chút */
+            right: 20px;
+            width: 350px; /* Chiều rộng tiêu chuẩn của box chat */
+            height: 500px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 9999;
+            overflow: hidden;
+            flex-direction: column;
+            border: 1px solid #ddd;
+        }
+
+        /* 3. Thanh tiêu đề của cửa sổ chat */
+        .chat-header {
+            background-color: #0084ff;
+            color: white;
+            padding: 10px 15px;
+            font-family: sans-serif;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-close {
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        /* 4. Phần thân chứa Iframe */
+        .chat-body {
+            flex: 1; /* Chiếm hết khoảng trống còn lại */
+            height: 100%;
+            width: 100%;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Responsive: Trên điện thoại thì cho full màn hình hoặc nhỏ lại */
+        @media (max-width: 400px) {
+            .chat-window {
+                width: 90%;
+                right: 5%;
+                bottom: 90px;
+            }
+        }
+    </style>
   </head>
   <body>
     <div id="root"></div>
