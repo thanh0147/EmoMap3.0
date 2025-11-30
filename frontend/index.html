@@ -13,7 +13,8 @@
     <meta property="og:type" content="Website KHKT" />
   </head>
   <body>
-    <div id="myChatWindow" class="chat-window">
+    <div id="root"></div>
+       <div id="myChatWindow" class="chat-window">
         <div class="chat-header">
             <span>Hỗ trợ trực tuyến</span>
             <span class="chat-close" onclick="toggleChat()">&times;</span>
@@ -26,20 +27,6 @@
     <button class="chat-btn-float" onclick="toggleChat()">
         💬
     </button>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx">
-      function toggleChat() {
-            var chatWindow = document.getElementById("myChatWindow");
-            var btn = document.querySelector(".chat-btn-float");
-
-            if (chatWindow.style.display === "none" || chatWindow.style.display === "") {
-                chatWindow.style.display = "flex"; // Hiện chat box
-                btn.innerHTML = "✖"; // Đổi icon nút thành dấu X
-            } else {
-                chatWindow.style.display = "none"; // Ẩn chat box
-                btn.innerHTML = "💬"; // Đổi icon nút về lại chat
-            }
-        }
-    </script>
+    <script type="module" src="/src/main.jsx"> </script>
   </body>
 </html>
