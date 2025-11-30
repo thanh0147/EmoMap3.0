@@ -117,7 +117,7 @@ export default function AdminDashboard() {
       }
     ]
   };
-
+/*
   // --- GIAO DIỆN ---
   if (!isAuthenticated) {
     return (
@@ -135,7 +135,7 @@ export default function AdminDashboard() {
       </div>
     );
   }
-
+*/
   return (
     <div className="admin-container">
       <header className="admin-header">
