@@ -432,7 +432,7 @@ function InputSection({ onSubmit }) {
 
 const getNoteColor = (c) => {
     // Bảng màu Pastel
-    const colors = { yellow: '#fef08a', blue: '#bae6fd', red: '#fecaca', purple: '#e9d5ff', green: '#bbf7d0', gray: '#e5e7eb' };
+    const colors = { yellow: '#fef08a', blue: '#bae6fd', red: '#fecaca', purple: '#e9d5ff', green: '#bbf7d0', gray: '#e5e7eb', pink: '#ff77faff' };
     return colors[c] || colors.yellow;
 };
 
