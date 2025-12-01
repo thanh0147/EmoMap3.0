@@ -194,7 +194,6 @@ def get_messages():
     response = supabase.table("wall_messages")\
         .select("*")\
         .order("created_at", desc=True)\
-        .limit(50)\
         .execute()
     return response.data
 
