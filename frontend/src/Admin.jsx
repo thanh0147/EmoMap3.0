@@ -31,6 +31,7 @@ export default function AdminDashboard() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  
   // --- 1. LOGIC ĐĂNG NHẬP ---
   const handleLogin = (e) => {
     e.preventDefault();
@@ -54,7 +55,7 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   };
-
+  fetchData();
   // --- 3. XỬ LÝ SỐ LIỆU CHO BIỂU ĐỒ ---
   
   // Tính điểm trung bình của 8 khía cạnh
