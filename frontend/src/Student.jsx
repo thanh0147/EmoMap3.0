@@ -194,7 +194,7 @@ function StudentApp() {
 
     // Nếu không có nhạc, hiển thị text bình thường
     return <p className="msg-text">{text}</p>;
-  };
+  
 
   return (
     <div className="app-container">
