@@ -39,6 +39,31 @@ FORBIDDEN_KEYWORDS = [
     "ma túy", "cần sa", "đập đá", "fuck", "đm", "đkm", "vcl", "buồi", "lồn", "óc chó", "lọ", "nọ", "lồ", "lồng",
     "luv"
 ]
+# --- KHO NHẠC TUYỂN CHỌN (Đảm bảo 100% hoạt động) ---
+MOOD_PLAYLISTS = {
+    "SAD": [
+        "p_tZ8E6d0YQ", # Nhạc Piano buồn
+        "1jO2wSpAoxA", # Nhạc mưa chill
+        "S-V0p6k98SE", # Nhạc không lời nhẹ nhàng
+    ],
+    "HAPPY": [
+        "ZbZSe6N_BXs", # Happy Vibe
+        "K4DyBUG242c", # Cartoon on & on
+        "5qap5aO4i9A", # Lofi Hip Hop Radio
+    ],
+    "STRESS": [
+        "jfKfPfyJRdk", # Lofi Girl Study
+        "lWA2pjMjpBs", # Relaxing Piano
+        "2OEL4P1Rz04", # Boardway Lofi
+    ],
+    "MOTIVATION": [
+        "ZXsQAXx_ao0", # Motivation Speech Music
+        "fLeJJPxZozs", # Epic Music
+    ],
+    "DEFAULT": [
+        "jfKfPfyJRdk", # Lofi Girl (Mặc định)
+    ]
+}
 
 # --- 3. DATA MODELS ---
 class SurveyInput(BaseModel):
@@ -290,7 +315,15 @@ def chat_counseling(data: ChatContextInput):
     if not quick_keyword_check(data.message):
         return {"reply": "Emo nhận thấy bạn đang có những suy nghĩ tiêu cực nghiêm trọng. Hãy tìm kiếm sự giúp đỡ từ thầy cô hoặc người thân ngay lập tức nhé. Mình luôn ở đây lắng nghe."}
 
-    # 2. Xây dựng ngữ cảnh cho AI (Persona: Người bạn Emo)
+    # 2. Xây dựng ngữ cảnh cho AI (Persona: Người bạn Emo)   
+
+# --- API CHAT TÂM SỰ (ĐÃ NÂNG CẤP LOGIC NHẠC) ---
+@app.post("/chat-counseling")
+def chat_counseling(data: ChatContextInput):
+    if not quick_keyword_check(data.message):
+        return {"reply": "Emo nhận thấy bạn đang có những suy nghĩ tiêu cực. Hãy tìm kiếm sự giúp đỡ từ người thân ngay nhé."}
+
+    # Prompt mới: Yêu cầu AI trả về TAG thay vì tự bịa ID
     system_prompt = """
         Role:
         Bạn là Emo, một người bạn tâm lý học đường thân thiện, thấu cảm và hài hước kiểu Gen Z.
@@ -300,11 +333,11 @@ def chat_counseling(data: ChatContextInput):
         •	Giọng điệu: thấu cảm, dịu dàng, tích cực và đôi chút hài hước.
         •	Không dùng thẻ <think> trong bất kỳ trường hợp nào.
         •	Luôn ưu tiên an toàn cảm xúc, không phán xét.
-        QUY TẮC VỀ NHẠC/VIDEO:
-            Nếu người dùng yêu cầu "mở nhạc", "nghe nhạc", "xem video" hoặc tâm trạng cần âm nhạc:
-            1. Tự chọn 1 bài hát Youtube phù hợp tâm trạng (Lofi, Chill, Tiktok lofi ...).
-            2. Lấy ID của video đó (Ví dụ: link là youtube.com/watch?v=jfKfPfyJRdk thì ID là jfKfPfyJRdk).
-            3. Cuối câu trả lời, BẮT BUỘC thêm chuỗi ký tự đặc biệt này: [YOUTUBE:VIDEO_ID]
+        QUY TẮC ÂM NHẠC (QUAN TRỌNG):
+            Nếu người dùng muốn nghe nhạc hoặc đang có cảm xúc mạnh cần âm nhạc:
+            - Xác định cảm xúc: Buồn (SAD), Vui (HAPPY), Căng thẳng/Học bài (STRESS), Cần động lực (MOTIVATION).
+            - Cuối câu trả lời, chèn TAG tương ứng: [MUSIC:SAD], [MUSIC:HAPPY], [MUSIC:STRESS], hoặc [MUSIC:MOTIVATION].
+            - TUYỆT ĐỐI KHÔNG tự bịa link Youtube.
         Content Handling
         1. Khi học sinh chia sẻ cảm xúc:
         •	Lắng nghe, phản hồi sự thấu hiểu.
@@ -326,31 +359,37 @@ def chat_counseling(data: ChatContextInput):
         Bỏ các phần định dạng văn bản như in đậm, in nghiêng, ...    
     """
     
-    # Ghép lịch sử chat (nếu có) để AI nhớ
     messages = [{"role": "system", "content": system_prompt}]
-    # Chỉ lấy 4 tin nhắn gần nhất để tiết kiệm token
     messages.extend(data.history[-4:]) 
     messages.append({"role": "user", "content": data.message})
 
     try:
         chat_completion = groq_client.chat.completions.create(
             messages=messages,
-            model="qwen/qwen3-32b",
+            model="llama-3.1-70b-versatile",
             temperature=0.7
         )
-        reply = clean_ai_response(chat_completion.choices[0].message.content)
+        raw_reply = clean_ai_response(chat_completion.choices[0].message.content)
         
-        # --- LƯU VÀO CSDL (MỚI THÊM) ---
-        # Lưu ẩn danh để tôn trọng quyền riêng tư, nhưng vẫn giữ lại nội dung để phân tích xu hướng
+        # Xử lý TAG nhạc -> Thay bằng ID thật từ kho
+        final_reply = raw_reply
+        
+        # Tìm xem AI có trả về tag nhạc nào không
+        match = re.search(r'\[MUSIC:(.*?)\]', raw_reply)
+        if match:
+            mood = match.group(1).strip().upper()
+            # Chọn ngẫu nhiên 1 bài từ kho nhạc
+            video_id = random.choice(MOOD_PLAYLISTS.get(mood, MOOD_PLAYLISTS["DEFAULT"]))
+            
+            # Thay thế tag [MUSIC:...] bằng tag [YOUTUBE:...] mà Frontend hiểu
+            final_reply = raw_reply.replace(match.group(0), f"[YOUTUBE:{video_id}]")
+        
+        # Lưu log
         try:
-            supabase.table("counseling_chats").insert({
-                "user_message": data.message,
-                "ai_reply": reply
-            }).execute()
-        except Exception as db_err:
-            print(f"Lỗi lưu database chat: {db_err}") # Chỉ in lỗi, không làm gián đoạn user
+            supabase.table("counseling_chats").insert({"user_message": data.message, "ai_reply": final_reply}).execute()
+        except: pass
 
-        return {"reply": reply}
+        return {"reply": final_reply}
     except Exception as e:
-        print(f"AI Error: {e}")
-        return {"reply": "Emo đang bị 'lag' xíu, cậu nói lại được không?"}
+        print(e)
+        return {"reply": "Emo đang load lại não, cậu chờ xíu nhé!"}
