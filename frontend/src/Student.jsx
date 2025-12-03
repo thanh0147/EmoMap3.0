@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, MessageSquare, Heart, X, MessageCircle, Sparkles, User } from 'lucide-react';
 
 // --- CẤU HÌNH API ---
-const API_BASE_URL = "http://127.0.0.1:8000"; 
+const API_BASE_URL = "https://emomap-backend.onrender.com"; 
 
 const AVATAR_LIST = ["🦊", "🐼", "🐱", "🐶", "🦁", "🐰", "🐸", "🦄", "🐯", "🐨", "🐧", "🦉", "🐣", "🐝", "🐞"];
 const STICKERS = ["🎄", "🎅", "❄️", "☃️", "🎁", "🦌", "✨", "🔥", "💖", "💯", "💅", "👻", "🤡", "🥺", "🌱", "🍓", "💫", "🧸", "👑", "💎", "🚀", "🌙", "🎵", "👀", "💀", "👽", "💩", "🦄"];
