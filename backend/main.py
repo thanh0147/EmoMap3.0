@@ -39,31 +39,6 @@ FORBIDDEN_KEYWORDS = [
     "ma túy", "cần sa", "đập đá", "fuck", "đm", "đkm", "vcl", "buồi", "lồn", "óc chó", "lọ", "nọ", "lồ", "lồng",
     "luv"
 ]
-# --- KHO NHẠC TUYỂN CHỌN (Đảm bảo 100% hoạt động) ---
-MOOD_PLAYLISTS = {
-    "SAD": [
-        "p_tZ8E6d0YQ", # Nhạc Piano buồn
-        "1jO2wSpAoxA", # Nhạc mưa chill
-        "S-V0p6k98SE", # Nhạc không lời nhẹ nhàng
-    ],
-    "HAPPY": [
-        "ZbZSe6N_BXs", # Happy Vibe
-        "K4DyBUG242c", # Cartoon on & on
-        "5qap5aO4i9A", # Lofi Hip Hop Radio
-    ],
-    "STRESS": [
-        "jfKfPfyJRdk", # Lofi Girl Study
-        "lWA2pjMjpBs", # Relaxing Piano
-        "2OEL4P1Rz04", # Boardway Lofi
-    ],
-    "MOTIVATION": [
-        "ZXsQAXx_ao0", # Motivation Speech Music
-        "fLeJJPxZozs", # Epic Music
-    ],
-    "DEFAULT": [
-        "jfKfPfyJRdk", # Lofi Girl (Mặc định)
-    ]
-}
 
 # --- 3. DATA MODELS ---
 class SurveyInput(BaseModel):
@@ -350,7 +325,7 @@ def chat_counseling(data: ChatContextInput):
 
     try:
         chat_completion = groq_client.chat.completions.create(
-            messages=messages,
+            messages=messages,  
             model="qwen/qwen3-32b",
             temperature=0.7
         )
