@@ -18,7 +18,7 @@ import { Users, Activity, AlertTriangle, Filter, Calendar as CalendarIcon } from
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 // --- CẤU HÌNH API ---
-const API_BASE_URL = "http://127.0.0.1:8000"; 
+const API_BASE_URL = "https://emomap-backend.onrender.com"; 
 
 const QUESTION_LABELS = [
   "Vui vẻ/Tích cực", "Ngủ ngon", "Tập trung", "Hài lòng ngoại hình", 
@@ -354,4 +354,4 @@ export default function AdminDashboard() {
       </div>
     </div>
   );
-}
+} 
