@@ -3,7 +3,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // QUAN TRỌNG: Đã thêm X và MessageCircle vào đây để sửa lỗi
-import { Send, MessageSquare, Heart, X, MessageCircle } from 'lucide-react';
+import { Send, MessageSquare, Heart, X, MessageCircle, Sparkles, User } from 'lucide-react';
 // --- CẤU HÌNH ---
 // Đảm bảo Backend Python đang chạy ở địa chỉ này
 const API_BASE_URL = "https://emomap-backend.onrender.com"; 
