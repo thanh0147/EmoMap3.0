@@ -206,3 +206,40 @@ def get_all_surveys():
         .order("created_at", desc=True)\
         .execute()
     return response.data
+
+class CommentInput(BaseModel):
+    message_id: str
+    content: str
+    
+
+# --- API MỚI CHO COMMENT ---
+
+@app.get("/get-comments/{message_id}")
+def get_comments(message_id: str):
+    # Lấy comment của một tin nhắn cụ thể
+    response = supabase.table("wall_comments")\
+        .select("*")\
+        .eq("message_id", message_id)\
+        .eq("is_filtered", False)\
+        .order("created_at", desc=True)\
+        .execute()
+    return response.data
+
+@app.post("/post-comment")
+def post_comment(data: CommentInput):
+    # Kiểm tra từ khóa cấm cho comment (Lớp 1)
+    if not quick_keyword_check(data.content):
+         return {"status": "blocked", "message": "Bình luận chứa từ ngữ không phù hợp."}
+
+    # Lưu vào DB
+    try:
+        supabase.table("wall_comments").insert({
+            "message_id": data.message_id,
+            "content": data.content,
+            "is_filtered": False
+        }).execute()
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Lỗi lưu bình luận")
+    
+    return {"status": "success"}

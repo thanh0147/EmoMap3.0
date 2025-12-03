@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, MessageSquare, Heart } from 'lucide-react';
 
+// QUAN TRỌNG: Đã thêm X và MessageCircle vào đây để sửa lỗi
+import { Send, MessageSquare, Heart, X, MessageCircle } from 'lucide-react';
 // --- CẤU HÌNH ---
 // Đảm bảo Backend Python đang chạy ở địa chỉ này
 const API_BASE_URL = "https://emomap-backend.onrender.com"; 
@@ -60,6 +61,10 @@ function StudentApp() {
   };
   useEffect(scrollToBottom, [messages, isTyping]);
 
+    // State cho Modal Bình luận
+  const [selectedNote, setSelectedNote] = useState(null); // Note đang mở
+  const [comments, setComments] = useState([]); // Danh sách comment của note đó
+  const [newComment, setNewComment] = useState(''); // Nội dung comment mới
   // Lắng nghe thay đổi kích thước màn hình
   useEffect(() => {
     const handleResize = () => {
@@ -207,7 +212,39 @@ function StudentApp() {
     finally { setIsLoading(false); }
   };
 
+
+  // Khi bấm vào một tờ giấy note -> Hiện modal và tải comment
+  const handleNoteClick = async (note) => {
+    setSelectedNote(note);
+    setComments([]); // Xóa comment cũ để hiện loading
+    try {
+      const res = await axios.get(`${API_BASE_URL}/get-comments/${note.id}`);
+      setComments(res.data);
+    } catch (error) { console.error("Lỗi tải bình luận"); }
+  };
+
+  // Gửi bình luận mới
+  const submitComment = async () => {
+    if (!newComment.trim() || !selectedNote) return;
+    try {
+      const res = await axios.post(`${API_BASE_URL}/post-comment`, {
+        message_id: selectedNote.id,
+        content: newComment
+      });
+      
+      if (res.data.status === 'blocked') {
+        alert("⚠️ " + res.data.message);
+      } else {
+        setNewComment('');
+        // Tải lại danh sách comment ngay lập tức
+        const updated = await axios.get(`${API_BASE_URL}/get-comments/${selectedNote.id}`);
+        setComments(updated.data);
+      }
+    } catch (error) { alert("Lỗi gửi bình luận"); }
+  };
+
   useEffect(() => { if (activeTab === 'wall') fetchMessages(); }, [activeTab]);
+
 
   // --- HÀM TÍNH TOÁN VISUAL (GIAO DIỆN LỘN XỘN TỐI ƯU MOBILE) ---
 
@@ -377,6 +414,7 @@ function StudentApp() {
                       initial={{ scale: 0 }} 
                       animate={{ scale: 1 }}
                       whileHover={{ scale: 1.15, zIndex: 9999, rotate: 0, transition: { duration: 0.1 } }}
+                      onClick={() => handleNoteClick(msg)} // Bấm vào để xem comment
                     >
                       {/* Băng dính cũng xoay nhẹ ngẫu nhiên */}
                       <div className="tape" style={{ transform: `translateX(-50%) rotate(${visual.tapeRotation}deg)` }}></div>
@@ -385,10 +423,64 @@ function StudentApp() {
                       <div className="sticker-deco">{visual.sticker}</div>
                       
                       <p>{msg.content}</p>
+
+                      <div className="comment-indicator"><MessageCircle size={14} /></div>
                     </motion.div>
                   )
                 })}
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* --- MODAL BÌNH LUẬN --- */}
+        <AnimatePresence>
+          {selectedNote && (
+            <motion.div 
+              className="modal-overlay"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setSelectedNote(null)}
+            >
+              <motion.div 
+                className="note-modal"
+                initial={{ scale: 0.8, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.8, y: 50 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{ backgroundColor: getNoteColor(selectedNote.sentiment_color) }}
+              >
+                <button className="close-btn" onClick={() => setSelectedNote(null)}><X size={20} /></button>
+                
+                <div className="modal-note-content">
+                  <h3>Lời tâm sự:</h3>
+                  <p>"{selectedNote.content}"</p>
+                  <span className="modal-date">{new Date(selectedNote.created_at).toLocaleString('vi-VN')}</span>
+                </div>
+
+                <div className="comments-section">
+                  <h4>Bình luận ({comments.length})</h4>
+                  <div className="comments-list">
+                    {comments.length === 0 ? (
+                      <p className="no-comment">Chưa có bình luận nào. Hãy là người đầu tiên!</p>
+                    ) : (
+                      comments.map(cmt => (
+                        <div key={cmt.id} className="comment-item">
+                          <p>{cmt.content}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  
+                  <div className="comment-input-area">
+                    <input 
+                      type="text" 
+                      placeholder="Viết bình luận an ủi..." 
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && submitComment()}
+                    />
+                    <button onClick={submitComment}><Send size={16} /></button>
+                  </div>
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
