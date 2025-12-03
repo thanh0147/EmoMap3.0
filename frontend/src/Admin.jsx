@@ -12,9 +12,9 @@ import {
   Legend,
 } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
-import { Users, Activity, AlertTriangle, Calendar } from 'lucide-react';
+// QUAN TRỌNG: Đã thêm Filter vào dòng import này
+import { Users, Activity, AlertTriangle, Filter, Calendar as CalendarIcon } from 'lucide-react';
 
-// Đăng ký các thành phần biểu đồ
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 const API_BASE_URL = "https://emomap-backend.onrender.com"; 
