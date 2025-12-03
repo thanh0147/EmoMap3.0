@@ -307,16 +307,6 @@ def post_comment(data: CommentInput):
     
     return {"status": "success"}
 
-
-# --- API MỚI: CHAT TÂM SỰ (COUNSELING) ---
-@app.post("/chat-counseling")
-def chat_counseling(data: ChatContextInput):
-    # 1. Kiểm tra từ khóa nguy hiểm
-    if not quick_keyword_check(data.message):
-        return {"reply": "Emo nhận thấy bạn đang có những suy nghĩ tiêu cực nghiêm trọng. Hãy tìm kiếm sự giúp đỡ từ thầy cô hoặc người thân ngay lập tức nhé. Mình luôn ở đây lắng nghe."}
-
-    # 2. Xây dựng ngữ cảnh cho AI (Persona: Người bạn Emo)   
-
 # --- API CHAT TÂM SỰ (ĐÃ NÂNG CẤP LOGIC NHẠC) ---
 @app.post("/chat-counseling")
 def chat_counseling(data: ChatContextInput):
