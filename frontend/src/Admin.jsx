@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import {
   Chart as ChartJS,
@@ -17,55 +17,41 @@ import { Users, Activity, AlertTriangle, Filter, Calendar as CalendarIcon } from
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
-const API_BASE_URL = "https://emomap-backend.onrender.com"; 
+// --- CẤU HÌNH API ---
+const API_BASE_URL = "http://127.0.0.1:8000"; 
 
-// Bản đồ câu hỏi để hiển thị trên biểu đồ
 const QUESTION_LABELS = [
   "Vui vẻ/Tích cực", "Ngủ ngon", "Tập trung", "Hài lòng ngoại hình", 
   "Có bạn thân", "Thầy cô thấu hiểu", "Gia đình ủng hộ", "Lạc quan tương lai"
 ];
 
 export default function AdminDashboard() {
-  // const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // const [password, setPassword] = useState('');
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // --- 1. LOGIC ĐĂNG NHẬP ---
-  /*const handleLogin = (e) => {
-    e.preventDefault();
-    if (password === 'admin123') { // Mật khẩu demo
-      setIsAuthenticated(true);
-      fetchData();
-    } else {
-      alert("Sai mật khẩu!");
-    }
-  };
- */
-
-    // --- STATE BỘ LỌC ---
+  // --- STATE BỘ LỌC ---
   const [timeFilter, setTimeFilter] = useState('all'); // 'all', 'today', 'week', 'month', 'custom'
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
-  // --- 2. LẤY DỮ LIỆU TỪ SERVER ---
+
+  // Hàm lấy dữ liệu từ Backend
   const fetchData = async () => {
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/admin/all-surveys`);
       setData(res.data);
     } catch (error) {
-      console.error("Lỗi tải dữ liệu", error);
+      console.error("Lỗi tải dữ liệu:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- 3. XỬ LÝ SỐ LIỆU CHO BIỂU ĐỒ ---
-    // TỰ ĐỘNG GỌI API KHI VÀO TRANG (Giúp đánh thức Server)
   useEffect(() => {
     fetchData();
   }, []);
-// --- LOGIC LỌC DỮ LIỆU ---
+
+  // --- LOGIC LỌC DỮ LIỆU ---
   const filteredData = useMemo(() => {
     if (timeFilter === 'all') return data;
 
@@ -99,7 +85,54 @@ export default function AdminDashboard() {
     });
   }, [data, timeFilter, customStart, customEnd]);
 
-  // --- TÍNH TOÁN SỐ LIỆU (Dựa trên filteredData) ---
+  // --- LOGIC MỚI: TỔNG HỢP DỮ LIỆU THEO THỜI GIAN (AGGREGATION) ---
+  const trendData = useMemo(() => {
+    const groupedData = {};
+    
+    // 1. Sắp xếp dữ liệu theo thời gian tăng dần (Cũ -> Mới) để vẽ biểu đồ đúng chiều
+    const sortedData = [...filteredData].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+    sortedData.forEach(item => {
+      const date = new Date(item.created_at);
+      let key = '';
+
+      // 2. Quyết định cách gom nhóm
+      if (timeFilter === 'today') {
+        // Nếu xem hôm nay -> Gom theo Giờ (8:00, 9:00...)
+        key = `${date.getHours()}:00`;
+      } else {
+        // Nếu xem tuần/tháng/tất cả -> Gom theo Ngày (01/12, 02/12...)
+        key = date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+      }
+
+      // 3. Khởi tạo nhóm nếu chưa có
+      if (!groupedData[key]) {
+        groupedData[key] = { totalScore: 0, count: 0 };
+      }
+
+      // 4. Tính điểm trung bình của học sinh này
+      const scores = Object.values(item.metrics || {});
+      if (scores.length > 0) {
+        const avg = scores.reduce((a, b) => a + parseInt(b), 0) / scores.length;
+        
+        // Cộng dồn vào nhóm
+        groupedData[key].totalScore += avg;
+        groupedData[key].count += 1;
+      }
+    });
+
+    // 5. Chuyển đổi object thành mảng cho biểu đồ
+    const labels = Object.keys(groupedData);
+    const values = labels.map(key => {
+      const item = groupedData[key];
+      // Tính trung bình cộng của cả nhóm trong khung thời gian đó
+      return (item.totalScore / item.count).toFixed(1);
+    });
+
+    return { labels, values };
+  }, [filteredData, timeFilter]);
+
+  // --- TÍNH TOÁN SỐ LIỆU KHÁC (Dựa trên filteredData) ---
   const calculateCategoryAverages = () => {
     const totals = Array(8).fill(0);
     const counts = Array(8).fill(0);
@@ -116,23 +149,23 @@ export default function AdminDashboard() {
 
     return totals.map((sum, i) => counts[i] ? (sum / counts[i]).toFixed(1) : 0);
   };
-  // Lọc danh sách học sinh cần hỗ trợ (Điểm trung bình < 2.5)
+
   const getRiskStudents = () => {
-    return data.filter(item => {
+    return filteredData.filter(item => {
       const scores = Object.values(item.metrics || {});
       const avg = scores.reduce((a, b) => a + parseInt(b), 0) / scores.length;
       return avg < 2.5;
     });
   };
 
-  // --- CẤU HÌNH BIỂU ĐỒ ---
+  // Cấu hình biểu đồ Cột (Giữ nguyên)
   const barChartData = {
     labels: QUESTION_LABELS,
     datasets: [
       {
-        label: 'Điểm trung bình (Thang 1-5)',
+        label: 'Điểm trung bình',
         data: calculateCategoryAverages(),
-        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+        backgroundColor: 'rgba(99, 102, 241, 0.7)',
         borderColor: 'rgba(99, 102, 241, 1)',
         borderWidth: 1,
         borderRadius: 5,
@@ -140,41 +173,23 @@ export default function AdminDashboard() {
     ],
   };
 
+  // Cấu hình biểu đồ Đường (CẬP NHẬT: Dùng trendData đã gom nhóm)
   const lineChartData = {
-    labels: data.slice(0, 15).reverse().map(d => new Date(d.created_at).toLocaleDateString('vi-VN')), // 10 ngày gần nhất
+    labels: trendData.labels, // Nhãn là Giờ hoặc Ngày
     datasets: [
       {
-        label: 'Cảm xúc chung',
-        data: data.slice(0, 15).reverse().map(d => {
-           const s = Object.values(d.metrics||{}); 
-           return s.reduce((a,b)=>a+parseInt(b),0)/s.length;
-        }),
+        label: 'Cảm xúc trung bình',
+        data: trendData.values, // Dữ liệu đã được tính trung bình
         borderColor: '#ec4899',
-        backgroundColor: 'rgba(236, 72, 153, 0.5)',
+        backgroundColor: 'rgba(236, 72, 153, 0.2)',
         fill: true,
-        tension: 0.4,
+        tension: 0.4, // Đường cong mượt mà
+        pointRadius: 4, // Điểm tròn rõ ràng
+        pointBackgroundColor: '#ec4899'
       }
     ]
   };
 
-  // --- GIAO DIỆN ---
-  /*if (!isAuthenticated) {
-    return (
-      <div className="login-container">
-        <form onSubmit={handleLogin} className="login-box">
-          <h2>🔐 Khu vực Giáo viên</h2>
-          <input 
-            type="password" 
-            placeholder="Nhập mật khẩu quản trị" 
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button type="submit">Truy cập Dashboard</button>
-        </form>
-      </div>
-    );
-  }
-*/
   return (
     <div className="admin-container">
       <header className="admin-header">
