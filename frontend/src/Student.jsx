@@ -54,12 +54,20 @@ function StudentApp() {
   // State Responsive: Kiểm tra xem có phải mobile không
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+    // --- STATE 3: TÂM SỰ CÙNG AI (MỚI) ---
+  const [counselorMessages, setCounselorMessages] = useState([
+    { sender: 'bot', text: "Chào cậu! Mình là Emo. Cậu đang có chuyện gì vui hay buồn muốn kể cho mình nghe không? Mình ở đây để lắng nghe nè! 🎧" }
+  ]);
+  const [counselorInput, setCounselorInput] = useState('');
+  const [isCounselorTyping, setIsCounselorTyping] = useState(false);
+  
   // Tự động cuộn xuống cuối khung chat
   const messagesEndRef = useRef(null);
+  const counselorEndRef = useRef(null); // Ref cuộn cho tab tâm sự
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-  useEffect(scrollToBottom, [messages, isTyping]);
+  useEffect(scrollToBottom, [messages, isTyping, counselorMessages, isCounselorTyping, activeTab]);
 
     // State cho Modal Bình luận
   const [selectedNote, setSelectedNote] = useState(null); // Note đang mở
@@ -245,6 +253,33 @@ function StudentApp() {
 
   useEffect(() => { if (activeTab === 'wall') fetchMessages(); }, [activeTab]);
 
+// --- LOGIC CHAT TÂM SỰ AI (MỚI) ---
+  const handleCounselorSubmit = async () => {
+    if (!counselorInput.trim()) return;
+
+    const userMsg = { sender: 'user', text: counselorInput };
+    setCounselorMessages(prev => [...prev, userMsg]);
+    setCounselorInput('');
+    setIsCounselorTyping(true);
+
+    // Chuẩn bị lịch sử chat để AI hiểu ngữ cảnh
+    const historyForApi = counselorMessages.map(m => ({
+      role: m.sender === 'user' ? 'user' : 'assistant',
+      content: m.text
+    }));
+
+    try {
+      const res = await axios.post(`${API_BASE_URL}/chat-counseling`, {
+        message: userMsg.text,
+        history: historyForApi
+      });
+      setIsCounselorTyping(false);
+      setCounselorMessages(prev => [...prev, { sender: 'bot', text: res.data.reply }]);
+    } catch (error) {
+      setIsCounselorTyping(false);
+      setCounselorMessages(prev => [...prev, { sender: 'bot', text: "Mạng hơi lag, cậu nói lại được không?" }]);
+    }
+  };
 
   // --- HÀM TÍNH TOÁN VISUAL (GIAO DIỆN LỘN XỘN TỐI ƯU MOBILE) ---
 
@@ -297,17 +332,60 @@ function StudentApp() {
         <p>Người bạn lắng nghe tâm hồn Gen Z</p>
       </header>
 
+      {/* NAVIGATION TABS (3 TABS) */}
       <div className="tabs">
+        <button className={`tab-btn ${activeTab === 'chatAI' ? 'active' : ''}`} onClick={() => setActiveTab('chatAI')}>
+          <Sparkles size={18} /> Tâm sự AI
+        </button>
         <button className={`tab-btn ${activeTab === 'survey' ? 'active' : ''}`} onClick={() => setActiveTab('survey')}>
-          <Heart size={18} /> Trò chuyện
+          <Heart size={18} /> Khảo sát
         </button>
         <button className={`tab-btn ${activeTab === 'wall' ? 'active' : ''}`} onClick={() => setActiveTab('wall')}>
-          <MessageSquare size={18} /> Note Tâm sự 
+          <MessageSquare size={18} /> Tường ẩn danh
         </button>
       </div>
 
       <main className="content-area">
         <AnimatePresence mode='wait'>
+          {/* --- TAB 2: TÂM SỰ CÙNG AI (CHAT FREE) --- */}
+          {activeTab === 'chatAI' && (
+            <motion.div key="chatAI" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="chat-interface">
+              <div className="messages-list">
+                {counselorMessages.map((msg, idx) => (
+                  <motion.div 
+                    key={idx} 
+                    initial={{ opacity: 0, y: 10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    className={`message-row ${msg.sender === 'user' ? 'user-row' : 'bot-row'}`}
+                  >
+                    {msg.sender === 'bot' && <div className="avatar">🎓</div>}
+                    <div className={`bubble ${msg.sender}`}>
+                      <p className="msg-text">{msg.text}</p>
+                    </div>
+                    {msg.sender === 'user' && <div className="avatar user-avatar">{userAvatar || '👤'}</div>}
+                  </motion.div>
+                ))}
+                {isCounselorTyping && <div className="message-row bot-row"><div className="avatar">🎓</div><div className="bubble bot typing"><span>.</span><span>.</span><span>.</span></div></div>}
+                <div ref={counselorEndRef} />
+              </div>
+
+              {/* Input cho Chat Tâm sự */}
+              <div className="wall-input" style={{ marginTop: 'auto', position: 'sticky', bottom: 0, zIndex: 100 }}>
+                <input 
+                  type="text" 
+                  placeholder="Nhắn tin cho Emo..." 
+                  value={counselorInput}
+                  onChange={(e) => setCounselorInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleCounselorSubmit()}
+                />
+                <button onClick={handleCounselorSubmit} disabled={isCounselorTyping}>
+                  <Send size={18} />
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+
           {activeTab === 'survey' ? (
             
             // --- GIAO DIỆN CHATBOX ---

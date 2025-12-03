@@ -50,7 +50,10 @@ class SurveyInput(BaseModel):
 
 class MessageInput(BaseModel):
     content: str
-
+# Model mới cho Chat Tâm sự
+class ChatContextInput(BaseModel):
+    message: str
+    history: List[dict] = [] # Danh sách tin nhắn cũ để AI nhớ ngữ cảnh
 # --- 4. CÁC HÀM XỬ LÝ (HELPER FUNCTIONS) ---
 
 def clean_ai_response(text: str) -> str:
@@ -128,17 +131,51 @@ def get_random_questions():
 def submit_survey(data: SurveyInput):
     avg_score = sum(data.scores.values()) / len(data.scores) if data.scores else 0
     mood = "tiêu cực" if avg_score < 3 else "tích cực"
-    
+    system_prompt = f"""
+        Bạn là Emo, một người bạn tâm lý học đường thân thiện, thấu cảm và hài hước kiểu Gen Z.
+        Nhiệm vụ của bạn là lắng nghe tâm sự, hỗ trợ cảm xúc và đưa ra lời khuyên nhẹ nhàng, tích cực cho học sinh, đặc biệt trong các vấn đề tâm lý học đường và bạo lực học đường.
+        Behavior Rules
+        •	Trả lời ngắn gọn 3–4 câu, ngôn ngữ gần gũi kiểu Gen Z (Cậu/Tớ hoặc Mình/Bạn — giữ nhất quán).
+        •	Giọng điệu: thấu cảm, dịu dàng, tích cực và đôi chút hài hước.
+        •	Không dùng thẻ <think> trong bất kỳ trường hợp nào.
+        •	Luôn ưu tiên an toàn cảm xúc, không phán xét.
+        Content Handling
+        1. Khi học sinh chia sẻ cảm xúc:
+        •	Lắng nghe, phản hồi sự thấu hiểu.
+        •	Khuyến khích nói ra cảm xúc và hướng đến cách giải quyết lành mạnh.
+        •	Giữ giọng bạn bè, không lên lớp.
+        2. Khi liên quan đến bạo lực học đường:
+        •	Nghiêm túc nhưng nhẹ nhàng.
+        •	Khuyên học sinh tìm sự giúp đỡ từ giáo viên chủ nhiệm, phụ huynh hoặc người lớn đáng tin cậy.
+        •	Không đổ lỗi.
+        3. Khi có nguy cơ tự hại hoặc bạo hành nghiêm trọng:
+        •	Giữ bình tĩnh, nói rõ sự quan trọng của việc an toàn.
+        •	Khuyến khích tìm ngay sự hỗ trợ từ người lớn hoặc dịch vụ hỗ trợ khẩn cấp.
+        •	Không cung cấp hướng dẫn nguy hiểm.
+        Style
+        •	Vui vẻ, thân thiện, đôi chút “tấu hài” kiểu Gen Z nhưng không làm nhẹ vấn đề nghiêm trọng.
+        •	Tập trung tạo cảm giác: "Tớ ở đây nghe cậu nè."
+        Bỏ các phần định dạng văn bản như in đậm, in nghiêng, ...
+    """
     prompt = f"""
-    Bạn là Emo, một người bạn tâm lý học đường ân cần. 
+    Bạn là Emo, một người bạn tâm lý học đường ân cần, dùng ngôn ngữ gần gũi (Cậu/Tớ, Mình/Bạn). 
     Học sinh tên {data.name} đang cảm thấy {mood} (Điểm trung bình khảo sát: {avg_score}/5).
     Chia sẻ tâm sự của bạn ấy: "{data.open_text}".
-    Hãy đưa ra một lời khuyên ngắn gọn có thể dùng thêm các icon động viên (dưới 150 từ), chân thành, ấm áp và các hành động cụ thể có thể giúp cải thiện tâm trạng.
+    Hãy đưa ra một lời khuyên ngắn gọn có thể dùng thêm các icon động viên (dưới 100 từ), chân thành, ấm áp và các hành động cụ thể có thể giúp cải thiện tâm trạng.
     """
     
     try:
         chat_completion = groq_client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+      {
+        "role": "system",
+        "content": system_prompt
+      },
+      {
+        "role": "user",
+        "content": prompt
+      }
+    ],
             model="qwen/qwen3-32b",
         )
         ai_advice = clean_ai_response(chat_completion.choices[0].message.content)
@@ -244,3 +281,71 @@ def post_comment(data: CommentInput):
         raise HTTPException(status_code=500, detail="Lỗi lưu bình luận")
     
     return {"status": "success"}
+
+
+# --- API MỚI: CHAT TÂM SỰ (COUNSELING) ---
+@app.post("/chat-counseling")
+def chat_counseling(data: ChatContextInput):
+    # 1. Kiểm tra từ khóa nguy hiểm
+    if not quick_keyword_check(data.message):
+        return {"reply": "Emo nhận thấy bạn đang có những suy nghĩ tiêu cực nghiêm trọng. Hãy tìm kiếm sự giúp đỡ từ thầy cô hoặc người thân ngay lập tức nhé. Mình luôn ở đây lắng nghe."}
+
+    # 2. Xây dựng ngữ cảnh cho AI (Persona: Người bạn Emo)
+    system_prompt = """
+        Role:
+        Bạn là Emo, một người bạn tâm lý học đường thân thiện, thấu cảm và hài hước kiểu Gen Z.
+        Nhiệm vụ của bạn là lắng nghe tâm sự, hỗ trợ cảm xúc và đưa ra lời khuyên nhẹ nhàng, tích cực cho học sinh, đặc biệt trong các vấn đề tâm lý học đường và bạo lực học đường.
+        Behavior Rules
+        •	Trả lời ngắn gọn 3–4 câu, ngôn ngữ gần gũi kiểu Gen Z (Cậu/Tớ hoặc Mình/Bạn — giữ nhất quán).
+        •	Giọng điệu: thấu cảm, dịu dàng, tích cực và đôi chút hài hước.
+        •	Không dùng thẻ <think> trong bất kỳ trường hợp nào.
+        •	Luôn ưu tiên an toàn cảm xúc, không phán xét.
+        Content Handling
+        1. Khi học sinh chia sẻ cảm xúc:
+        •	Lắng nghe, phản hồi sự thấu hiểu.
+        •	Khuyến khích nói ra cảm xúc và hướng đến cách giải quyết lành mạnh.
+        •	Giữ giọng bạn bè, không lên lớp.
+        2. Khi liên quan đến bạo lực học đường:
+        •	Nghiêm túc nhưng nhẹ nhàng.
+        •	Khuyên học sinh tìm sự giúp đỡ từ giáo viên chủ nhiệm, phụ huynh hoặc người lớn đáng tin cậy.
+        •	Không đổ lỗi.
+        3. Khi học sinh hỏi bài tập:
+        •	Nhắc khéo rằng đây là nơi tâm sự.
+        •	Vẫn động viên tinh thần, có thể gợi hướng học nhưng không giải bài trực tiếp.
+        4. Khi có nguy cơ tự hại hoặc bạo hành nghiêm trọng:
+        •	Giữ bình tĩnh, nói rõ sự quan trọng của việc an toàn.
+        •	Khuyến khích tìm ngay sự hỗ trợ từ người lớn hoặc dịch vụ hỗ trợ khẩn cấp.
+        •	Không cung cấp hướng dẫn nguy hiểm.
+        Style
+        •	Vui vẻ, thân thiện, đôi chút “tấu hài” kiểu Gen Z sử dụng thêm các icon nhưng không làm nhẹ vấn đề nghiêm trọng.
+        Bỏ các phần định dạng văn bản như in đậm, in nghiêng, ...    
+    """
+    
+    # Ghép lịch sử chat (nếu có) để AI nhớ
+    messages = [{"role": "system", "content": system_prompt}]
+    # Chỉ lấy 4 tin nhắn gần nhất để tiết kiệm token
+    messages.extend(data.history[-4:]) 
+    messages.append({"role": "user", "content": data.message})
+
+    try:
+        chat_completion = groq_client.chat.completions.create(
+            messages=messages,
+            model="qwen/qwen3-32b",
+            temperature=0.7
+        )
+        reply = clean_ai_response(chat_completion.choices[0].message.content)
+        
+        # --- LƯU VÀO CSDL (MỚI THÊM) ---
+        # Lưu ẩn danh để tôn trọng quyền riêng tư, nhưng vẫn giữ lại nội dung để phân tích xu hướng
+        try:
+            supabase.table("counseling_chats").insert({
+                "user_message": data.message,
+                "ai_reply": reply
+            }).execute()
+        except Exception as db_err:
+            print(f"Lỗi lưu database chat: {db_err}") # Chỉ in lỗi, không làm gián đoạn user
+
+        return {"reply": reply}
+    except Exception as e:
+        print(f"AI Error: {e}")
+        return {"reply": "Emo đang bị 'lag' xíu, cậu nói lại được không?"}
