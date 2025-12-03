@@ -252,7 +252,7 @@ function StudentApp() {
   };
 
   useEffect(() => { if (activeTab === 'wall') fetchMessages(); }, [activeTab]);
-
+}
 // --- LOGIC CHAT TÂM SỰ AI (MỚI) ---
   const handleCounselorSubmit = async () => {
     if (!counselorInput.trim()) return;
@@ -347,7 +347,7 @@ function StudentApp() {
 
       <main className="content-area">
         <AnimatePresence mode='wait'>
-          {/* --- TAB 2: TÂM SỰ CÙNG AI (CHAT FREE) --- */}
+          {/* --- TAB 1: TÂM SỰ CÙNG AI (CHAT FREE) --- */}
           {activeTab === 'chatAI' && (
             <motion.div key="chatAI" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="chat-interface">
               <div className="messages-list">
@@ -385,8 +385,8 @@ function StudentApp() {
             </motion.div>
           )}
 
-
-          {activeTab === 'survey' ? (
+          {/* --- TAB 2: KHẢO SÁT (SURVEY) --- */}
+          {activeTab === 'survey' && (
             
             // --- GIAO DIỆN CHATBOX ---
             <motion.div key="chat" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="chat-interface">
@@ -466,8 +466,9 @@ function StudentApp() {
                 <div ref={messagesEndRef} />
               </div>
             </motion.div>
-          ) : (
-            
+          )}  
+          {/* --- TAB 3: TƯỜNG ẨN DANH --- */}
+          {activeTab === 'wall' && (
             // --- GIAO DIỆN TƯỜNG (MESSY WALL) ---
             <motion.div key="wall" className="wall-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <div className="wall-input">
