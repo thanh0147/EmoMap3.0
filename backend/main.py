@@ -35,7 +35,7 @@ app.add_middleware(
 # --- 2. DANH SÁCH TỪ KHÓA CẤM (LỚP BẢO VỆ 1) ---
 FORBIDDEN_KEYWORDS = [
     "tự tử", "tự sát", "chết", "muốn chết", "chết đi", "giết người", "chém", "đâm chết", 
-    "nhảy lầu", "uống thuốc sâu", "rạch tay", "hiếp dâm", "ấu dâm", 
+    "nhảy lầu", "uống thuốc sâu", "rạch tay", "hiếp dâm", "ấu dâm", "LIÊN HOAN CÓ LẠC CÓ CÓ CHUỒI"
     "ma túy", "cần sa", "đập đá", "fuck", "đm", "đkm", "vcl", "buồi", "lồn", "óc chó", "lọ", "nọ", "lồ", "lồn", "lồng"
 ]
 
