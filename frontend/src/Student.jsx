@@ -260,7 +260,7 @@ function StudentApp() {
                     animate={{ opacity: 1, y: 0 }} 
                     className={`message-row ${msg.sender === 'user' ? 'user-row' : 'bot-row'}`}
                   >
-                    {msg.sender === 'bot' && <div className="avatar">🎓</div>}
+                    {msg.sender === 'bot' && <div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/></div>}
                     
                     <div className={`bubble ${msg.sender}`}>
                       {/* Dùng hàm renderMessageContent để hiển thị Text hoặc Video */}
