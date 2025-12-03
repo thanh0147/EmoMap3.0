@@ -322,12 +322,7 @@ def chat_counseling(data: ChatContextInput):
         •	Trả lời ngắn gọn 3–4 câu, ngôn ngữ gần gũi kiểu Gen Z (Cậu/Tớ hoặc Mình/Bạn — giữ nhất quán).
         •	Giọng điệu: thấu cảm, dịu dàng, tích cực và đôi chút hài hước.
         •	Không dùng thẻ <think> trong bất kỳ trường hợp nào.
-        •	Luôn ưu tiên an toàn cảm xúc, không phán xét.
-        QUY TẮC ÂM NHẠC (QUAN TRỌNG):
-            Nếu người dùng muốn nghe nhạc hoặc đang có cảm xúc mạnh cần âm nhạc:
-            - Xác định cảm xúc: Buồn (SAD), Vui (HAPPY), Căng thẳng/Học bài (STRESS), Cần động lực (MOTIVATION).
-            - Cuối câu trả lời, chèn TAG tương ứng: [MUSIC:SAD], [MUSIC:HAPPY], [MUSIC:STRESS], hoặc [MUSIC:MOTIVATION].
-            - TUYỆT ĐỐI KHÔNG tự bịa link Youtube.
+        •	Luôn ưu tiên an toàn cảm xúc, không phán xét.   
         Content Handling
         1. Khi học sinh chia sẻ cảm xúc:
         •	Lắng nghe, phản hồi sự thấu hiểu.
@@ -359,27 +354,18 @@ def chat_counseling(data: ChatContextInput):
             model="qwen/qwen3-32b",
             temperature=0.7
         )
-        raw_reply = clean_ai_response(chat_completion.choices[0].message.content)
+        reply = clean_ai_response(chat_completion.choices[0].message.content)
         
-        # Xử lý TAG nhạc -> Thay bằng ID thật từ kho
-        final_reply = raw_reply
-        
-        # Tìm xem AI có trả về tag nhạc nào không
-        match = re.search(r'\[MUSIC:(.*?)\]', raw_reply)
-        if match:
-            mood = match.group(1).strip().upper()
-            # Chọn ngẫu nhiên 1 bài từ kho nhạc
-            video_id = random.choice(MOOD_PLAYLISTS.get(mood, MOOD_PLAYLISTS["DEFAULT"]))
-            
-            # Thay thế tag [MUSIC:...] bằng tag [YOUTUBE:...] mà Frontend hiểu
-            final_reply = raw_reply.replace(match.group(0), f"[YOUTUBE:{video_id}]")
-        
-        # Lưu log
+        # 3. Lưu vào CSDL
         try:
-            supabase.table("counseling_chats").insert({"user_message": data.message, "ai_reply": final_reply}).execute()
-        except: pass
+            supabase.table("counseling_chats").insert({
+                "user_message": data.message,
+                "ai_reply": reply
+            }).execute()
+        except Exception as db_err:
+            print(f"Lỗi lưu chat log: {db_err}")
 
-        return {"reply": final_reply}
+        return {"reply": reply}
     except Exception as e:
-        print(e)
-        return {"reply": "Emo đang load lại não, cậu chờ xíu nhé!"}
+        print(f"AI Error: {e}")
+        return {"reply": "Emo đang bị 'lag' xíu, cậu nói lại được không?"}

@@ -192,36 +192,6 @@ function StudentApp() {
     }
   };
 
-  // --- HÀM RENDER TIN NHẮN (CÓ HỖ TRỢ YOUTUBE) ---
-  const renderMessageContent = (text) => {
-    // Kiểm tra xem tin nhắn có chứa mã Youtube không: [YOUTUBE:xxxx]
-    const youtubeRegex = /\[YOUTUBE:(.*?)\]/;
-    const match = text.match(youtubeRegex);
-
-    if (match) {
-      const videoId = match[1];
-      const cleanText = text.replace(youtubeRegex, '').trim(); // Xóa mã YT khỏi text hiển thị
-      
-      return (
-        <div className="message-content">
-          {cleanText && <p className="msg-text" style={{marginBottom: '10px'}}>{cleanText}</p>}
-          
-          {/* Trình phát Video */}
-          <div className="youtube-embed" style={{ borderRadius: '12px', overflow: 'hidden', marginTop: '5px' }}>
-            <iframe
-              width="100%"
-              height={isMobile ? "200" : "250"}
-              src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            ></iframe>
-          </div>
-        </div>
-      );
-    }
-
     // Nếu không có nhạc, hiển thị text bình thường
     return <p className="msg-text">{text}</p>;
   };
@@ -263,11 +233,10 @@ function StudentApp() {
                     {msg.sender === 'bot' && <div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/></div>}
                     
                     <div className={`bubble ${msg.sender}`}>
-                      {/* Dùng hàm renderMessageContent để hiển thị Text hoặc Video */}
-                      {renderMessageContent(msg.text)}
+                      <p className="msg-text">{msg.text}</p>
                     </div>
 
-                    {msg.sender === 'user' && <div className="avatar user-avatar">{userAvatar || '🐰'}</div>}
+                    {msg.sender === 'user' && <div className="avatar user-avatar">{userAvatar || '😺'}</div>}
                   </motion.div>
                 ))}
                 {isCounselorTyping && <div className="message-row bot-row"><div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/></div><div className="bubble bot typing"><span>.</span><span>.</span><span>.</span></div></div>}
