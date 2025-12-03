@@ -335,17 +335,43 @@ function StudentApp() {
     </div>
   );
 }
+// --- SUB COMPONENTS ---
 
-// Sub-components (InfoForm, InputSection, getNoteColor) giữ nguyên...
 function InfoForm({ onSubmit }) {
   const [name, setName] = useState('');
   const [cls, setCls] = useState('');
-  return ( <div className="mini-form"> <input placeholder="Tên cậu là gì?" value={name} onChange={e => setName(e.target.value)} /> <input placeholder="Lớp (VD: 12A1)" value={cls} onChange={e => setCls(e.target.value)} /> <select id="gender-select"> <option value="Nam">Nam</option> <option value="Nữ">Nữ</option> <option value="Khác">Khác</option> </select> <button onClick={() => { const gender = document.getElementById('gender-select').value; if(cls) onSubmit(name, cls, gender); else alert("Nhập lớp đi cậu ơi!"); }}>Tiếp tục</button> </div> );
+  return (
+    <div className="mini-form">
+      <input placeholder="Tên cậu là gì?" value={name} onChange={e => setName(e.target.value)} />
+      <input placeholder="Lớp (VD: 12A1)" value={cls} onChange={e => setCls(e.target.value)} />
+      <select id="gender-select">
+         <option value="Nam">Nam</option>
+         <option value="Nữ">Nữ</option>
+         <option value="Khác">Khác</option>
+      </select>
+      <button onClick={() => {
+        const gender = document.getElementById('gender-select').value;
+        if(cls) onSubmit(name, cls, gender);
+        else alert("Nhập lớp đi cậu ơi!");
+      }}>Tiếp tục</button>
+    </div>
+  );
 }
+
 function InputSection({ onSubmit }) {
   const [txt, setTxt] = useState('');
-  return ( <div className="mini-input"> <textarea rows="3" placeholder="Chia sẻ với mình nhé..." value={txt} onChange={e => setTxt(e.target.value)}></textarea> <button onClick={() => txt && onSubmit(txt)}><Send size={16}/></button> </div> );
+  return (
+    <div className="mini-input">
+      <textarea rows="3" placeholder="Chia sẻ với mình nhé..." value={txt} onChange={e => setTxt(e.target.value)}></textarea>
+      <button onClick={() => txt && onSubmit(txt)}><Send size={16}/></button>
+    </div>
+  );
 }
-const getNoteColor = (c) => { const colors = { yellow: '#fef08a', blue: '#bae6fd', red: '#fecaca', purple: '#e9d5ff', green: '#bbf7d0', gray: '#e5e7eb' }; return colors[c] || colors.yellow; };
+
+const getNoteColor = (c) => {
+    // Bảng màu Pastel
+    const colors = { yellow: '#fef08a', blue: '#bae6fd', red: '#fecaca', purple: '#e9d5ff', green: '#bbf7d0', gray: '#e5e7eb', pink: '#f8b6f6ff' };
+    return colors[c] || colors.yellow;
+};
 
 export default StudentApp;
