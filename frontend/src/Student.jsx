@@ -229,7 +229,7 @@ function StudentApp() {
   return (
     <div className="app-container">
       <header className="header">
-        <h1>🌱 Emo Buddy</h1>
+        <h1><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="10%"/> EmoMap</h1>
         <p>Người bạn lắng nghe tâm hồn Gen Z</p>
       </header>
 
@@ -267,17 +267,17 @@ function StudentApp() {
                       {renderMessageContent(msg.text)}
                     </div>
 
-                    {msg.sender === 'user' && <div className="avatar user-avatar">{userAvatar || '👤'}</div>}
+                    {msg.sender === 'user' && <div className="avatar user-avatar">{userAvatar || '🐰'}</div>}
                   </motion.div>
                 ))}
-                {isCounselorTyping && <div className="message-row bot-row"><div className="avatar">🎓</div><div className="bubble bot typing"><span>.</span><span>.</span><span>.</span></div></div>}
+                {isCounselorTyping && <div className="message-row bot-row"><div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/></div><div className="bubble bot typing"><span>.</span><span>.</span><span>.</span></div></div>}
                 <div ref={counselorEndRef} />
               </div>
 
               <div className="wall-input" style={{ marginTop: 'auto', position: 'sticky', bottom: 0, zIndex: 100 }}>
                 <input 
                   type="text" 
-                  placeholder="Nhắn tin cho Emo... (Gõ 'nghe nhạc' thử xem!)" 
+                  placeholder="Nhắn tin cho Emo..." 
                   value={counselorInput}
                   onChange={(e) => setCounselorInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleCounselorSubmit()}
@@ -296,7 +296,7 @@ function StudentApp() {
               <div className="messages-list">
                 {messages.map((msg) => (
                   <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`message-row ${msg.sender === 'user' ? 'user-row' : 'bot-row'}`}>
-                    {msg.sender === 'bot' && <div className="avatar">🤖</div>}
+                    {msg.sender === 'bot' && <div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/></div>}
                     <div className={`bubble ${msg.sender} ${msg.type === 'advice_card' ? 'advice-bubble' : ''}`}>
                       <p className="msg-text">{msg.text}</p>
                       {msg.type === 'select_avatar' && !msg.submitted && <div className="avatar-grid">{AVATAR_LIST.map((ava, idx) => <button key={idx} onClick={() => { msg.submitted = true; handleAvatarSelect(ava); }}>{ava}</button>)}</div>}
@@ -307,7 +307,7 @@ function StudentApp() {
                     {msg.sender === 'user' && <div className="avatar user-avatar">{userAvatar || '👤'}</div>}
                   </motion.div>
                 ))}
-                {isTyping && <div className="message-row bot-row"><div className="avatar">🤖</div><div className="bubble bot typing"><span>.</span><span>.</span><span>.</span></div></div>}
+                {isTyping && <div className="message-row bot-row"><div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/></div><div className="bubble bot typing"><span>.</span><span>.</span><span>.</span></div></div>}
                 <div ref={messagesEndRef} />
               </div>
             </motion.div>
