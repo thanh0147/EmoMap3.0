@@ -366,7 +366,7 @@ def chat_counseling(data: ChatContextInput):
     try:
         chat_completion = groq_client.chat.completions.create(
             messages=messages,
-            model="llama-3.1-70b-versatile",
+            model="qwen/qwen3-32b",
             temperature=0.7
         )
         raw_reply = clean_ai_response(chat_completion.choices[0].message.content)

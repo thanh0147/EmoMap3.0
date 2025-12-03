@@ -7,13 +7,13 @@ import { Send, MessageSquare, Heart, X, MessageCircle, Sparkles, User } from 'lu
 const API_BASE_URL = "https://emomap-backend.onrender.com"; 
 
 const AVATAR_LIST = ["🦊", "🐼", "🐱", "🐶", "🦁", "🐰", "🐸", "🦄", "🐯", "🐨", "🐧", "🦉", "🐣", "🐝", "🐞"];
-const STICKERS = ["🎄", "🎅", "❄️", "☃️", "🎁", "🦌", "✨", "🔥", "💖", "💯", "💅", "👻", "🤡", "🥺", "🌱", "🍓", "💫", "🧸", "👑", "💎", "🚀", "🌙", "🎵", "👀", "💀", "👽", "💩", "🦄"];
+const STICKERS = ["🎄", "🎅", "❄️", "☃️", "🎁", "🦌", "✨", "🔥", "💖", "💯", "💅", "👻", "🤡", "🥺", "🌱", "🍓", "💫", "🧸", "👑", "💎", "🚀", "🌙", "🎵", "🦄"];
 const RATING_OPTIONS = [
-  { score: 1, icon: "😠", label: "Tồi tệ / Rất áp lực" },
-  { score: 2, icon: "🙁", label: "Không ổn lắm" },
-  { score: 3, icon: "😐", label: "Bình thường thôi" },
-  { score: 4, icon: "🙂", label: "Khá ổn / Vui vẻ" },
-  { score: 5, icon: "😍", label: "Tuyệt vời / Hạnh phúc" }
+  { score: 1, icon: "🫣", label: "Không bao giờ (Never)" },
+  { score: 2, icon: "⌚", label: "Hiếm khi (Rarely - khoảng 1 lần/học kỳ)" },
+  { score: 3, icon: "🙂", label: "Thỉnh thoảng (Sometimes - khoảng 1 lần/tháng)" },
+  { score: 4, icon: "🤔", label: "Thường xuyên (Often - khoảng 1 lần/tuần)" },
+  { score: 5, icon: "😥", label: "Rất thường xuyên (Very Often/Always - hằng ngày)" }
 ];
 
 function StudentApp() {
