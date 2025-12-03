@@ -472,7 +472,7 @@ function StudentApp() {
                   <div className="comment-input-area">
                     <input 
                       type="text" 
-                      placeholder="Viết bình luận an ủi..." 
+                      placeholder="Viết bình luận ..." 
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && submitComment()}
