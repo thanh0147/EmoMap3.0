@@ -42,6 +42,11 @@ export default function AdminDashboard() {
     }
   };
  */
+
+    // --- STATE BỘ LỌC ---
+  const [timeFilter, setTimeFilter] = useState('all'); // 'all', 'today', 'week', 'month', 'custom'
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
   // --- 2. LẤY DỮ LIỆU TỪ SERVER ---
   const fetchData = async () => {
     setLoading(true);
@@ -60,16 +65,46 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchData();
   }, []);
-  // Tính điểm trung bình của 8 khía cạnh
+// --- LOGIC LỌC DỮ LIỆU ---
+  const filteredData = useMemo(() => {
+    if (timeFilter === 'all') return data;
+
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    return data.filter(item => {
+      const itemDate = new Date(item.created_at);
+
+      if (timeFilter === 'today') {
+        return itemDate >= startOfDay;
+      }
+      if (timeFilter === 'week') {
+        const oneWeekAgo = new Date(now);
+        oneWeekAgo.setDate(now.getDate() - 7);
+        return itemDate >= oneWeekAgo;
+      }
+      if (timeFilter === 'month') {
+        const oneMonthAgo = new Date(now);
+        oneMonthAgo.setMonth(now.getMonth() - 1);
+        return itemDate >= oneMonthAgo;
+      }
+      if (timeFilter === 'custom') {
+        if (!customStart || !customEnd) return true;
+        const start = new Date(customStart);
+        const end = new Date(customEnd);
+        end.setHours(23, 59, 59, 999); // Lấy hết ngày cuối
+        return itemDate >= start && itemDate <= end;
+      }
+      return true;
+    });
+  }, [data, timeFilter, customStart, customEnd]);
+
+  // --- TÍNH TOÁN SỐ LIỆU (Dựa trên filteredData) ---
   const calculateCategoryAverages = () => {
     const totals = Array(8).fill(0);
     const counts = Array(8).fill(0);
 
-    data.forEach(item => {
-      // Metrics lưu dạng { "an-uuid": 4, "another-uuid": 2... } 
-      // Do ID câu hỏi là random UUID, ta cần map theo thứ tự index nếu có thể, 
-      // hoặc ở đây ta giả định metrics lưu theo key q1, q2... nếu backend trả về chuẩn.
-      // Để đơn giản cho demo, ta sẽ lấy values của object metrics
+    filteredData.forEach(item => {
       const scores = Object.values(item.metrics || {});
       scores.forEach((score, index) => {
         if (index < 8) {
@@ -81,7 +116,6 @@ export default function AdminDashboard() {
 
     return totals.map((sum, i) => counts[i] ? (sum / counts[i]).toFixed(1) : 0);
   };
-
   // Lọc danh sách học sinh cần hỗ trợ (Điểm trung bình < 2.5)
   const getRiskStudents = () => {
     return data.filter(item => {
@@ -101,22 +135,24 @@ export default function AdminDashboard() {
         backgroundColor: 'rgba(99, 102, 241, 0.6)',
         borderColor: 'rgba(99, 102, 241, 1)',
         borderWidth: 1,
+        borderRadius: 5,
       },
     ],
   };
 
   const lineChartData = {
-    labels: data.slice(0, 10).reverse().map(d => new Date(d.created_at).toLocaleDateString('vi-VN')), // 10 ngày gần nhất
+    labels: data.slice(0, 15).reverse().map(d => new Date(d.created_at).toLocaleDateString('vi-VN')), // 10 ngày gần nhất
     datasets: [
       {
         label: 'Cảm xúc chung',
-        data: data.slice(0, 10).reverse().map(d => {
+        data: data.slice(0, 15).reverse().map(d => {
            const s = Object.values(d.metrics||{}); 
            return s.reduce((a,b)=>a+parseInt(b),0)/s.length;
         }),
         borderColor: '#ec4899',
         backgroundColor: 'rgba(236, 72, 153, 0.5)',
-        tension: 0.3,
+        fill: true,
+        tension: 0.4,
       }
     ]
   };
@@ -142,61 +178,126 @@ export default function AdminDashboard() {
   return (
     <div className="admin-container">
       <header className="admin-header">
-        <h1>📊 Emo Buddy Dashboard</h1>
-        <button onClick={() => window.location.reload()} className="refresh-btn">Làm mới dữ liệu</button>
+        <div className="header-title">
+          <h1>📊 Emo Buddy Dashboard</h1>
+          <p>Theo dõi sức khỏe tinh thần học sinh</p>
+        </div>
+        <button onClick={fetchData} className="refresh-btn">
+          {loading ? 'Đang tải...' : 'Làm mới dữ liệu'}
+        </button>
       </header>
 
-      {/* Hiển thị thông báo nếu đang tải (thường thấy khi Cold Start) */}
-      {loading && (
-        <div style={{ textAlign: 'center', padding: '20px', color: '#6366f1' }}>
-          <p>Đang kết nối tới máy chủ... (Nếu đây là lần đầu truy cập sau một thời gian, vui lòng đợi khoảng 1 phút để Server khởi động)</p>
-        </div>
-      )}
+      {/* --- THANH CÔNG CỤ LỌC (FILTER BAR) --- */}
+      <div className="filter-bar">
+        <div className="filter-group">
+          <Filter size={18} className="filter-icon" />
+          <span className="filter-label">Thời gian:</span>
+          
+          <button 
+            className={`filter-btn ${timeFilter === 'today' ? 'active' : ''}`} 
+            onClick={() => setTimeFilter('today')}
+          >Hôm nay</button>
+          
+          <button 
+            className={`filter-btn ${timeFilter === 'week' ? 'active' : ''}`} 
+            onClick={() => setTimeFilter('week')}
+          >7 Ngày</button>
+          
+          <button 
+            className={`filter-btn ${timeFilter === 'month' ? 'active' : ''}`} 
+            onClick={() => setTimeFilter('month')}
+          >30 Ngày</button>
+          
+          <button 
+            className={`filter-btn ${timeFilter === 'all' ? 'active' : ''}`} 
+            onClick={() => setTimeFilter('all')}
+          >Tất cả</button>
 
-      {/* THẺ THỐNG KÊ (STATS CARDS) */}
+          <button 
+            className={`filter-btn ${timeFilter === 'custom' ? 'active' : ''}`} 
+            onClick={() => setTimeFilter('custom')}
+          >Tùy chỉnh</button>
+        </div>
+
+        {/* Bộ chọn ngày tùy chỉnh */}
+        {timeFilter === 'custom' && (
+          <div className="custom-date-picker">
+            <input 
+              type="date" 
+              value={customStart} 
+              onChange={(e) => setCustomStart(e.target.value)} 
+            />
+            <span>đến</span>
+            <input 
+              type="date" 
+              value={customEnd} 
+              onChange={(e) => setCustomEnd(e.target.value)} 
+            />
+          </div>
+        )}
+      </div>
+
+      {/* --- THỐNG KÊ --- */}
       <div className="stats-grid">
         <div className="stat-card">
-          <Users size={30} color="#6366f1" />
+          <div className="icon-box blue"><Users size={24} color="white" /></div>
           <div>
-            <h3>Tổng số khảo sát</h3>
-            <p className="stat-num">{data.length}</p>
+            <h3>Số lượng khảo sát</h3>
+            <p className="stat-num">{filteredData.length}</p>
+            <span className="stat-desc">Trong khoảng thời gian này</span>
           </div>
         </div>
         <div className="stat-card">
-          <Activity size={30} color="#10b981" />
+          <div className="icon-box green"><Activity size={24} color="white" /></div>
           <div>
-            <h3>Điểm TB toàn trường</h3>
+            <h3>Điểm TB Chung</h3>
             <p className="stat-num">
-              {(calculateCategoryAverages().reduce((a,b)=>parseFloat(a)+parseFloat(b),0)/8).toFixed(1)}/5.0
+              {filteredData.length > 0 
+                ? (calculateCategoryAverages().reduce((a,b)=>parseFloat(a)+parseFloat(b),0)/8).toFixed(1) 
+                : 0}/5.0
             </p>
+            <span className="stat-desc">Chỉ số sức khỏe tinh thần</span>
           </div>
         </div>
-        <div className="stat-card risk">
-          <AlertTriangle size={30} color="#ef4444" />
+        <div className="stat-card">
+          <div className="icon-box red"><AlertTriangle size={24} color="white" /></div>
           <div>
             <h3>Cần hỗ trợ (SOS)</h3>
-            <p className="stat-num">{getRiskStudents().length} HS</p>
+            <p className="stat-num risk-text">{getRiskStudents().length} HS</p>
+            <span className="stat-desc">Điểm trung bình dưới 2.5</span>
           </div>
         </div>
       </div>
 
+      {/* --- BIỂU ĐỒ --- */}
       <div className="charts-section">
-        {/* BIỂU ĐỒ CỘT: CHI TIẾT VẤN ĐỀ */}
         <div className="chart-box">
-          <h3>🧩 Phân tích khía cạnh tâm lý</h3>
-          <Bar data={barChartData} options={{ responsive: true, scales: { y: { min: 0, max: 5 } } }} />
+          <div className="chart-header">
+            <h3>🧩 Phân tích khía cạnh</h3>
+            <p>Điểm trung bình theo từng nhóm câu hỏi</p>
+          </div>
+          <div className="chart-canvas-container">
+             <Bar data={barChartData} options={{ responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 5 } } }} />
+          </div>
         </div>
 
-        {/* BIỂU ĐỒ ĐƯỜNG: XU HƯỚNG */}
         <div className="chart-box">
-          <h3>📈 Xu hướng cảm xúc gần đây</h3>
-          <Line data={lineChartData} />
+          <div className="chart-header">
+            <h3>📈 Xu hướng cảm xúc</h3>
+            <p>Diễn biến tâm lý theo thời gian thực</p>
+          </div>
+          <div className="chart-canvas-container">
+            <Line data={lineChartData} options={{ responsive: true, maintainAspectRatio: false }} />
+          </div>
         </div>
       </div>
 
-      {/* DANH SÁCH RỦI RO */}
+      {/* --- BẢNG CHI TIẾT --- */}
       <div className="risk-section">
-        <h3>🚨 Danh sách cần quan tâm đặc biệt</h3>
+        <div className="section-header">
+          <h3>🚨 Danh sách cần quan tâm đặc biệt</h3>
+          <span className="badge-count">{getRiskStudents().length}</span>
+        </div>
         <div className="table-responsive">
           <table>
             <thead>
@@ -209,19 +310,29 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {getRiskStudents().map((st) => {
-                const scores = Object.values(st.metrics || {});
-                const avg = (scores.reduce((a, b) => a + parseInt(b), 0) / scores.length).toFixed(1);
-                return (
-                  <tr key={st.id}>
-                    <td>{new Date(st.created_at).toLocaleDateString('vi-VN')}</td>
-                    <td>{st.student_name || "Ẩn danh"}</td>
-                    <td>{st.student_class}</td>
-                    <td><span className="badge-risk">{avg}</span></td>
-                    <td className="note-cell">{st.open_ended_answer}</td>
-                  </tr>
-                );
-              })}
+              {getRiskStudents().length > 0 ? (
+                getRiskStudents().map((st) => {
+                  const scores = Object.values(st.metrics || {});
+                  const avg = (scores.reduce((a, b) => a + parseInt(b), 0) / scores.length).toFixed(1);
+                  return (
+                    <tr key={st.id}>
+                      <td>{new Date(st.created_at).toLocaleString('vi-VN')}</td>
+                      <td style={{fontWeight: 'bold'}}>{st.student_name || "Ẩn danh"}</td>
+                      <td>{st.student_class}</td>
+                      <td><span className="badge-risk">{avg}</span></td>
+                      <td className="note-cell" title={st.open_ended_answer}>
+                        {st.open_ended_answer}
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="5" style={{textAlign: 'center', padding: '30px', color: '#888'}}>
+                    Tuyệt vời! Không có học sinh nào trong nhóm báo động đỏ trong khoảng thời gian này.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
