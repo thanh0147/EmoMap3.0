@@ -26,13 +26,13 @@ const QUESTION_LABELS = [
 ];
 
 export default function AdminDashboard() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
+  // const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // const [password, setPassword] = useState('');
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // --- 1. LOGIC ĐĂNG NHẬP ---
-  const handleLogin = (e) => {
+  /*const handleLogin = (e) => {
     e.preventDefault();
     if (password === 'admin123') { // Mật khẩu demo
       setIsAuthenticated(true);
@@ -41,7 +41,7 @@ export default function AdminDashboard() {
       alert("Sai mật khẩu!");
     }
   };
-
+ */
   // --- 2. LẤY DỮ LIỆU TỪ SERVER ---
   const fetchData = async () => {
     setLoading(true);
@@ -56,7 +56,10 @@ export default function AdminDashboard() {
   };
 
   // --- 3. XỬ LÝ SỐ LIỆU CHO BIỂU ĐỒ ---
-  
+    // TỰ ĐỘNG GỌI API KHI VÀO TRANG (Giúp đánh thức Server)
+  useEffect(() => {
+    fetchData();
+  }, []);
   // Tính điểm trung bình của 8 khía cạnh
   const calculateCategoryAverages = () => {
     const totals = Array(8).fill(0);
@@ -119,7 +122,7 @@ export default function AdminDashboard() {
   };
 
   // --- GIAO DIỆN ---
-  if (!isAuthenticated) {
+  /*if (!isAuthenticated) {
     return (
       <div className="login-container">
         <form onSubmit={handleLogin} className="login-box">
@@ -135,13 +138,20 @@ export default function AdminDashboard() {
       </div>
     );
   }
-
+*/
   return (
     <div className="admin-container">
       <header className="admin-header">
         <h1>📊 Emo Buddy Dashboard</h1>
         <button onClick={() => window.location.reload()} className="refresh-btn">Làm mới dữ liệu</button>
       </header>
+
+      {/* Hiển thị thông báo nếu đang tải (thường thấy khi Cold Start) */}
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '20px', color: '#6366f1' }}>
+          <p>Đang kết nối tới máy chủ... (Nếu đây là lần đầu truy cập sau một thời gian, vui lòng đợi khoảng 1 phút để Server khởi động)</p>
+        </div>
+      )}
 
       {/* THẺ THỐNG KÊ (STATS CARDS) */}
       <div className="stats-grid">
