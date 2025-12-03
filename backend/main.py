@@ -36,7 +36,7 @@ app.add_middleware(
 FORBIDDEN_KEYWORDS = [
     "tự tử", "tự sát", "chết", "muốn chết", "chết đi", "giết người", "chém", "đâm chết", 
     "nhảy lầu", "uống thuốc sâu", "rạch tay", "hiếp dâm", "ấu dâm", 
-    "ma túy", "cần sa", "đập đá", "fuck", "đm", "đkm", "vcl", "buồi", "lồn", "óc chó"
+    "ma túy", "cần sa", "đập đá", "fuck", "đm", "đkm", "vcl", "buồi", "lồn", "óc chó", "lọ", "nọ"
 ]
 
 # --- 3. DATA MODELS ---
