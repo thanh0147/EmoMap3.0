@@ -104,7 +104,7 @@ const LandingPage = () => {
           transition={{ duration: 0.8 }}
           viewport={{ margin: "-100px" }}
         >
-          <div className="section-header">
+          <div className="landing-section-header">
             <div className="badge">📸 Trải nghiệm thực tế</div>
             <h2>Giao diện Hiện đại</h2>
             <p className="center-text">Thân thiện, dễ sử dụng trên mọi thiết bị.</p>
