@@ -9,11 +9,11 @@ const API_BASE_URL = "https://emomap-backend.onrender.com";
 const AVATAR_LIST = ["🦊", "🐼", "🐱", "🐶", "🦁", "🐰", "🐸", "🦄", "🐯", "🐨", "🐧", "🦉", "🐣", "🐝", "🐞"];
 const STICKERS = ["🎄", "🎅", "❄️", "☃️", "🎁", "🦌", "✨", "🔥", "💖", "💯", "💅", "👻", "🤡", "🥺", "🌱", "🍓", "💫", "🧸", "👑", "💎", "🚀", "🌙", "🎵", "🦄"];
 const RATING_OPTIONS = [
-  { score: 1, icon: "😠", label: "Tồi tệ / Rất áp lực" },
-  { score: 2, icon: "🙁", label: "Không ổn lắm" },
-  { score: 3, icon: "😐", label: "Bình thường thôi" },
-  { score: 4, icon: "🙂", label: "Khá ổn / Vui vẻ" },
-  { score: 5, icon: "😍", label: "Tuyệt vời / Hạnh phúc" }
+  { score: 1, icon: "😣", label: "Không bao giờ" },
+  { score: 2, icon: "😢", label: "Hiếm khi" },
+  { score: 3, icon: "☹️", label: "Đôi khi" },
+  { score: 4, icon: "🤨", label: "Thỉnh thoảng" },
+  { score: 5, icon: "😍", label: "Thường xuyên" }
 ];
 
 function StudentApp() {
