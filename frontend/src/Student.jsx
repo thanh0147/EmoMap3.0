@@ -9,11 +9,11 @@ const API_BASE_URL = "https://emomap-backend.onrender.com";
 const AVATAR_LIST = ["🦊", "🐼", "🐱", "🐶", "🦁", "🐰", "🐸", "🦄", "🐯", "🐨", "🐧", "🦉", "🐣", "🐝", "🐞"];
 const STICKERS = ["🎄", "🎅", "❄️", "☃️", "🎁", "🦌", "✨", "🔥", "💖", "💯", "💅", "👻", "🤡", "🥺", "🌱", "🍓", "💫", "🧸", "👑", "💎", "🚀", "🌙", "🎵", "🦄"];
 const RATING_OPTIONS = [
-  { score: 1, icon: "🫣", label: "Không bao giờ (Never)" },
-  { score: 2, icon: "⌚", label: "Hiếm khi (Rarely - khoảng 1 lần/học kỳ)" },
-  { score: 3, icon: "🙂", label: "Thỉnh thoảng (Sometimes - khoảng 1 lần/tháng)" },
-  { score: 4, icon: "🤔", label: "Thường xuyên (Often - khoảng 1 lần/tuần)" },
-  { score: 5, icon: "😥", label: "Rất thường xuyên (Very Often/Always - hằng ngày)" }
+  { score: 1, icon: "😠", label: "Tồi tệ / Rất áp lực" },
+  { score: 2, icon: "🙁", label: "Không ổn lắm" },
+  { score: 3, icon: "😐", label: "Bình thường thôi" },
+  { score: 4, icon: "🙂", label: "Khá ổn / Vui vẻ" },
+  { score: 5, icon: "😍", label: "Tuyệt vời / Hạnh phúc" }
 ];
 
 function StudentApp() {
@@ -59,16 +59,13 @@ function StudentApp() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Khởi tạo chat khảo sát
   useEffect(() => {
     if (messages.length === 0) {
-        setMessages([{ id: 'intro', sender: 'bot', text: "Chào cậu! Trước khi bắt đầu bài khảo sát nhỏ, hãy chọn một Avatar đại diện cho cậu nhé:", type: 'select_avatar' }]);
+      setMessages([{ id: 'intro', sender: 'bot', text: "Chào cậu! Trước khi bắt đầu bài khảo sát nhỏ, hãy chọn một Avatar đại diện cho cậu nhé:", type: 'select_avatar' }]);
     }
   }, []);
 
-  // ... (GIỮ NGUYÊN CÁC HÀM LOGIC CŨ: handleAvatarSelect, handleInfoSubmit, askQuestion, handleRating, finishQuestions, submitFullSurvey, addMessage, fetchMessages, postMessage, handleNoteClick, submitComment, getNoteColor, getSizeClass, getVisualProps) ...
-  // Để tiết kiệm không gian, tôi chỉ viết lại phần renderMessageContent và logic Chat AI
-
+  // --- LOGIC KHẢO SÁT ---
   const handleAvatarSelect = (avatar) => {
     setUserAvatar(avatar);
     addMessage('user', avatar);
@@ -131,7 +128,11 @@ function StudentApp() {
     setMessages(prev => [...prev, { id: Date.now(), sender, text, type, data, submitted: false }]);
   };
 
-  const fetchMessages = async () => { try { const res = await axios.get(`${API_BASE_URL}/get-messages`); setWallMessages(res.data); } catch (error) { console.error(error); } };
+  // --- LOGIC TƯỜNG & COMMENT ---
+  const fetchMessages = async () => {
+    try { const res = await axios.get(`${API_BASE_URL}/get-messages`); setWallMessages(res.data); } catch (error) { console.error(error); }
+  };
+
   const postMessage = async () => {
     if (!newMessage.trim()) return;
     setIsLoading(true);
@@ -142,10 +143,12 @@ function StudentApp() {
     } catch (error) { alert("Lỗi gửi tin nhắn"); } 
     finally { setIsLoading(false); }
   };
+
   const handleNoteClick = async (note) => {
     setSelectedNote(note); setComments([]);
     try { const res = await axios.get(`${API_BASE_URL}/get-comments/${note.id}`); setComments(res.data); } catch (error) { console.error("Lỗi tải bình luận"); }
   };
+
   const submitComment = async () => {
     if (!newComment.trim() || !selectedNote) return;
     try {
@@ -153,19 +156,10 @@ function StudentApp() {
       if (res.data.status === 'blocked') { alert("⚠️ " + res.data.message); } else { setNewMessage(''); const updated = await axios.get(`${API_BASE_URL}/get-comments/${selectedNote.id}`); setComments(updated.data); }
     } catch (error) { alert("Lỗi gửi bình luận"); }
   };
+
   useEffect(() => { if (activeTab === 'wall') fetchMessages(); }, [activeTab]);
-  const getSizeClass = () => { const count = wallMessages.length; if (count < 5) return 'note-lg'; if (count < 15) return 'note-md'; return 'note-sm'; };
-  const getVisualProps = (id) => {
-    const safeId = id || Math.random().toString(); const seed = safeId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const rotationRange = isMobile ? 10 : 50; const translateRange = isMobile ? 10 : 60;
-    const rotation = (seed % rotationRange) - (rotationRange / 2); const translateX = (seed % translateRange) - (translateRange / 2); 
-    const translateY = (seed % translateRange) - (translateRange / 2); const tapeRotation = (seed % 10) - 5; const zIndexBase = seed % 10; const stickerIndex = seed % STICKERS.length;
-    return { rotation, sticker: STICKERS[stickerIndex], transform: `translate(${translateX}px, ${translateY}px) rotate(${rotation}deg)`, tapeRotation, zIndexBase };
-  };
-  const getNoteColor = (c) => { const colors = { yellow: '#fef08a', blue: '#bae6fd', red: '#fecaca', purple: '#e9d5ff', green: '#bbf7d0', gray: '#e5e7eb' }; return colors[c] || colors.yellow; };
 
-
-  // --- LOGIC CHAT TÂM SỰ AI ---
+  // --- LOGIC CHAT TÂM SỰ AI (ĐÃ SỬA LỖI) ---
   const handleCounselorSubmit = async () => {
     if (!counselorInput.trim()) return;
 
@@ -184,26 +178,37 @@ function StudentApp() {
         message: userMsg.text,
         history: historyForApi
       });
-      setIsCounselorTyping(false);
-      setCounselorMessages(prev => [...prev, { sender: 'bot', text: res.data.reply }]);
+
+      if (res.data && res.data.reply) {
+        setIsCounselorTyping(false);
+        setCounselorMessages(prev => [...prev, { sender: 'bot', text: res.data.reply }]);
+      } else {
+        throw new Error("Phản hồi không hợp lệ");
+      }
     } catch (error) {
       setIsCounselorTyping(false);
       setCounselorMessages(prev => [...prev, { sender: 'bot', text: "Mạng hơi lag, cậu nói lại được không?" }]);
     }
   };
 
-    // Nếu không có nhạc, hiển thị text bình thường
-    return <p className="msg-text">{text}</p>;
-  
+  // --- VISUAL HELPERS ---
+  const getSizeClass = () => { const count = wallMessages.length; if (count < 5) return 'note-lg'; if (count < 15) return 'note-md'; return 'note-sm'; };
+  const getVisualProps = (id) => {
+    const safeId = id || Math.random().toString(); const seed = safeId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const rotationRange = isMobile ? 10 : 50; const translateRange = isMobile ? 10 : 60;
+    const rotation = (seed % rotationRange) - (rotationRange / 2); const translateX = (seed % translateRange) - (translateRange / 2); 
+    const translateY = (seed % translateRange) - (translateRange / 2); const tapeRotation = (seed % 10) - 5; const zIndexBase = seed % 10; const stickerIndex = seed % STICKERS.length;
+    return { rotation, sticker: STICKERS[stickerIndex], transform: `translate(${translateX}px, ${translateY}px) rotate(${rotation}deg)`, tapeRotation, zIndexBase };
+  };
+  const getNoteColor = (c) => { const colors = { yellow: '#fef08a', blue: '#bae6fd', red: '#fecaca', purple: '#e9d5ff', green: '#bbf7d0', gray: '#e5e7eb' }; return colors[c] || colors.yellow; };
 
   return (
     <div className="app-container">
       <header className="header">
-        <h1><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="10%"/> EmoMap</h1>
+        <h1>🌱 Emo Buddy</h1>
         <p>Người bạn lắng nghe tâm hồn Gen Z</p>
       </header>
 
-      {/* NAVIGATION TABS */}
       <div className="tabs">
         <button className={`tab-btn ${activeTab === 'chatAI' ? 'active' : ''}`} onClick={() => setActiveTab('chatAI')}>
           <Sparkles size={18} /> Tâm sự AI
@@ -219,7 +224,7 @@ function StudentApp() {
       <main className="content-area">
         <AnimatePresence mode='wait'>
           
-          {/* --- TAB 1: TÂM SỰ CÙNG AI (CHAT FREE) --- */}
+          {/* TAB 1: TÂM SỰ CÙNG AI */}
           {activeTab === 'chatAI' && (
             <motion.div key="chatAI" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="chat-interface">
               <div className="messages-list">
@@ -230,16 +235,15 @@ function StudentApp() {
                     animate={{ opacity: 1, y: 0 }} 
                     className={`message-row ${msg.sender === 'user' ? 'user-row' : 'bot-row'}`}
                   >
-                    {msg.sender === 'bot' && <div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/></div>}
-                    
+                    {msg.sender === 'bot' && <div className="avatar">🎓</div>}
                     <div className={`bubble ${msg.sender}`}>
+                      {/* FIX: Hiển thị trực tiếp text thay vì gọi hàm renderMessageContent đã bị xóa */}
                       <p className="msg-text">{msg.text}</p>
                     </div>
-
-                    {msg.sender === 'user' && <div className="avatar user-avatar">{userAvatar || '😺'}</div>}
+                    {msg.sender === 'user' && <div className="avatar user-avatar">{userAvatar || '👤'}</div>}
                   </motion.div>
                 ))}
-                {isCounselorTyping && <div className="message-row bot-row"><div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/></div><div className="bubble bot typing"><span>.</span><span>.</span><span>.</span></div></div>}
+                {isCounselorTyping && <div className="message-row bot-row"><div className="avatar">🎓</div><div className="bubble bot typing"><span>.</span><span>.</span><span>.</span></div></div>}
                 <div ref={counselorEndRef} />
               </div>
 
@@ -258,14 +262,13 @@ function StudentApp() {
             </motion.div>
           )}
 
-          {/* --- TAB 2: KHẢO SÁT (SURVEY) --- */}
+          {/* TAB 2: KHẢO SÁT */}
           {activeTab === 'survey' && (
             <motion.div key="survey" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="chat-interface">
-              {/* ... (Giữ nguyên UI Khảo sát) ... */}
               <div className="messages-list">
                 {messages.map((msg) => (
                   <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`message-row ${msg.sender === 'user' ? 'user-row' : 'bot-row'}`}>
-                    {msg.sender === 'bot' && <div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/></div>}
+                    {msg.sender === 'bot' && <div className="avatar">🤖</div>}
                     <div className={`bubble ${msg.sender} ${msg.type === 'advice_card' ? 'advice-bubble' : ''}`}>
                       <p className="msg-text">{msg.text}</p>
                       {msg.type === 'select_avatar' && !msg.submitted && <div className="avatar-grid">{AVATAR_LIST.map((ava, idx) => <button key={idx} onClick={() => { msg.submitted = true; handleAvatarSelect(ava); }}>{ava}</button>)}</div>}
@@ -276,16 +279,15 @@ function StudentApp() {
                     {msg.sender === 'user' && <div className="avatar user-avatar">{userAvatar || '👤'}</div>}
                   </motion.div>
                 ))}
-                {isTyping && <div className="message-row bot-row"><div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/></div><div className="bubble bot typing"><span>.</span><span>.</span><span>.</span></div></div>}
+                {isTyping && <div className="message-row bot-row"><div className="avatar">🤖</div><div className="bubble bot typing"><span>.</span><span>.</span><span>.</span></div></div>}
                 <div ref={messagesEndRef} />
               </div>
             </motion.div>
           )}
 
-          {/* --- TAB 3: TƯỜNG ẨN DANH --- */}
+          {/* TAB 3: TƯỜNG ẨN DANH */}
           {activeTab === 'wall' && (
             <motion.div key="wall" className="wall-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              {/* ... (Giữ nguyên UI Tường) ... */}
               <div className="wall-input">
                 <input type="text" placeholder="Viết lên tường..." value={newMessage} onChange={e => setNewMessage(e.target.value)} />
                 <button onClick={postMessage} disabled={isLoading}>Dán</button>
@@ -308,7 +310,7 @@ function StudentApp() {
           )}
         </AnimatePresence>
 
-        {/* MODAL BÌNH LUẬN (Giữ nguyên) */}
+        {/* MODAL BÌNH LUẬN */}
         <AnimatePresence>
           {selectedNote && (
             <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedNote(null)}>
@@ -335,43 +337,17 @@ function StudentApp() {
     </div>
   );
 }
-// --- SUB COMPONENTS ---
 
+// Sub-components
 function InfoForm({ onSubmit }) {
   const [name, setName] = useState('');
   const [cls, setCls] = useState('');
-  return (
-    <div className="mini-form">
-      <input placeholder="Tên cậu là gì?" value={name} onChange={e => setName(e.target.value)} />
-      <input placeholder="Lớp (VD: 12A1)" value={cls} onChange={e => setCls(e.target.value)} />
-      <select id="gender-select">
-         <option value="Nam">Nam</option>
-         <option value="Nữ">Nữ</option>
-         <option value="Khác">Khác</option>
-      </select>
-      <button onClick={() => {
-        const gender = document.getElementById('gender-select').value;
-        if(cls) onSubmit(name, cls, gender);
-        else alert("Nhập lớp đi cậu ơi!");
-      }}>Tiếp tục</button>
-    </div>
-  );
+  return ( <div className="mini-form"> <input placeholder="Tên cậu là gì?" value={name} onChange={e => setName(e.target.value)} /> <input placeholder="Lớp (VD: 12A1)" value={cls} onChange={e => setCls(e.target.value)} /> <select id="gender-select"> <option value="Nam">Nam</option> <option value="Nữ">Nữ</option> <option value="Khác">Khác</option> </select> <button onClick={() => { const gender = document.getElementById('gender-select').value; if(cls) onSubmit(name, cls, gender); else alert("Nhập lớp đi cậu ơi!"); }}>Tiếp tục</button> </div> );
 }
-
 function InputSection({ onSubmit }) {
   const [txt, setTxt] = useState('');
-  return (
-    <div className="mini-input">
-      <textarea rows="3" placeholder="Chia sẻ với mình nhé..." value={txt} onChange={e => setTxt(e.target.value)}></textarea>
-      <button onClick={() => txt && onSubmit(txt)}><Send size={16}/></button>
-    </div>
-  );
+  return ( <div className="mini-input"> <textarea rows="3" placeholder="Chia sẻ với mình nhé..." value={txt} onChange={e => setTxt(e.target.value)}></textarea> <button onClick={() => txt && onSubmit(txt)}><Send size={16}/></button> </div> );
 }
-
-const getNoteColor = (c) => {
-    // Bảng màu Pastel
-    const colors = { yellow: '#fef08a', blue: '#bae6fd', red: '#fecaca', purple: '#e9d5ff', green: '#bbf7d0', gray: '#e5e7eb', pink: '#f8b6f6ff' };
-    return colors[c] || colors.yellow;
-};
+const getNoteColor = (c) => { const colors = { yellow: '#fef08a', blue: '#bae6fd', red: '#fecaca', purple: '#e9d5ff', green: '#bbf7d0', gray: '#e5e7eb', pink: '#f7bbefff' }; return colors[c] || colors.yellow; };
 
 export default StudentApp;
