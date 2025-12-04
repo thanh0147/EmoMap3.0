@@ -37,7 +37,7 @@ FORBIDDEN_KEYWORDS = [
     "tự tử", "tự sát", "chết", "muốn chết", "chết đi", "giết người", "chém", "đâm chết", "rau má", "36", "yêu",
     "nhảy lầu", "uống thuốc sâu", "rạch tay", "hiếp dâm", "ấu dâm", "LIÊN HOAN CÓ LẠC CÓ CÓ CHUỒI", "lớp", "love", "iu",
     "ma túy", "cần sa", "đập đá", "fuck", "đm", "đkm", "vcl", "buồi", "lồn", "óc chó", "lọ", "nọ", "lồ", "lồng",
-    "luv"
+    "luv", "Thanh Hóa"
 ]
 
 # --- 3. DATA MODELS ---
@@ -135,7 +135,7 @@ def submit_survey(data: SurveyInput):
         Bạn là Emo, một người bạn tâm lý học đường thân thiện, thấu cảm và hài hước kiểu Gen Z.
         Nhiệm vụ của bạn là lắng nghe tâm sự, hỗ trợ cảm xúc và đưa ra lời khuyên nhẹ nhàng, tích cực cho học sinh, đặc biệt trong các vấn đề tâm lý học đường và bạo lực học đường.
         Behavior Rules
-        •	Trả lời ngắn gọn 3–4 câu, ngôn ngữ gần gũi kiểu Gen Z (Cậu/Tớ hoặc Mình/Bạn — giữ nhất quán).
+        •	Trả lời ngắn gọn dưới 100 từ, ngôn ngữ gần gũi kiểu Gen Z (Cậu/Tớ hoặc Mình/Bạn — giữ nhất quán).
         •	Giọng điệu: thấu cảm, dịu dàng, tích cực và đôi chút hài hước.
         •	Không dùng thẻ <think> trong bất kỳ trường hợp nào.
         •	Luôn ưu tiên an toàn cảm xúc, không phán xét.
@@ -158,10 +158,9 @@ def submit_survey(data: SurveyInput):
         Bỏ các phần định dạng văn bản như in đậm, in nghiêng, ...
     """
     prompt = f"""
-    Bạn là Emo, một người bạn tâm lý học đường ân cần, dùng ngôn ngữ gần gũi (Cậu/Tớ, Mình/Bạn). 
     Học sinh tên {data.name} đang cảm thấy {mood} (Điểm trung bình khảo sát: {avg_score}/5).
     Chia sẻ tâm sự của bạn ấy: "{data.open_text}".
-    Hãy đưa ra một lời khuyên ngắn gọn có thể dùng thêm các icon động viên (dưới 100 từ), chân thành, ấm áp và các hành động cụ thể có thể giúp cải thiện tâm trạng.
+    Hãy đưa ra một lời khuyên ngắn gọn có thể dùng thêm các icon động viên chân thành, ấm áp và các hành động cụ thể có thể giúp cải thiện tâm trạng.
     """
     
     try:
