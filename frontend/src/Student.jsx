@@ -5,7 +5,7 @@ import { Send, MessageSquare, Heart, X, MessageCircle, Sparkles, User } from 'lu
 
 // --- CẤU HÌNH API ---
 const API_BASE_URL = "https://emomap-backend.onrender.com"; 
-
+const MAX_NOTE_LENGTH = 100; 
 const AVATAR_LIST = ["🦊", "🐼", "🐱", "🐶", "🦁", "🐰", "🐸", "🦄", "🐯", "🐨", "🐧", "🦉", "🐣", "🐝", "🐞"];
 const STICKERS = ["🎄", "🎅", "❄️", "☃️", "🎁", "🦌", "✨", "🔥", "💖", "💯", "💅", "👻", "🤡", "🥺", "🌱", "🍓", "💫", "🧸", "👑", "💎", "🚀", "🌙", "🎵", "🦄"];
 const RATING_OPTIONS = [
