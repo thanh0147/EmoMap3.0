@@ -5,7 +5,7 @@ import { Send, MessageSquare, Heart, X, MessageCircle, Sparkles, User } from 'lu
 
 // --- CẤU HÌNH API ---
 const API_BASE_URL = "https://emomap-backend.onrender.com"; 
-const MAX_NOTE_LENGTH = 100; 
+const MAX_NOTE_LENGTH = 50; 
 const AVATAR_LIST = ["🦊", "🐼", "🐱", "🐶", "🦁", "🐰", "🐸", "🦄", "🐯", "🐨", "🐧", "🦉", "🐣", "🐝", "🐞"];
 const STICKERS = ["🎄", "🎅", "❄️", "☃️", "🎁", "🦌", "✨", "🔥", "💖", "💯", "💅", "👻", "🤡", "🥺", "🌱", "🍓", "💫", "🧸", "👑", "💎", "🚀", "🌙", "🎵", "🦄"];
 const RATING_OPTIONS = [
@@ -133,14 +133,28 @@ function StudentApp() {
     try { const res = await axios.get(`${API_BASE_URL}/get-messages`); setWallMessages(res.data); } catch (error) { console.error(error); }
   };
 
+  // --- HÀM ĐĂNG NOTE (ĐÃ CẬP NHẬT KIỂM TRA SPAM) ---
   const postMessage = async () => {
     if (!newMessage.trim()) return;
+
+    // 1. KIỂM TRA SPAM TRƯỚC KHI GỬI
+    const errorMsg = validateContent(newMessage);
+    if (errorMsg) {
+      alert("⚠️ " + errorMsg);
+      return; // Dừng lại, không gửi
+    }
+
     setIsLoading(true);
     try {
       const res = await axios.post(`${API_BASE_URL}/post-message`, { content: newMessage });
-      if (res.data.status === 'blocked') { alert("⚠️ " + res.data.message); } 
-      else { setNewMessage(''); fetchMessages(); alert("Đã gửi lên tường!"); }
-    } catch (error) { alert("Lỗi gửi tin nhắn"); } 
+      if (res.data.status === 'blocked') { 
+        alert("⚠️ " + res.data.message); 
+      } else { 
+        setNewMessage(''); 
+        fetchMessages(); 
+        alert("Đã gửi lên tường!"); 
+      }
+    } catch (error) { alert("Lỗi gửi tin nhắn spam"); } 
     finally { setIsLoading(false); }
   };
 
@@ -190,7 +204,32 @@ function StudentApp() {
       setCounselorMessages(prev => [...prev, { sender: 'bot', text: "Mạng hơi lag, cậu nói lại được không?" }]);
     }
   };
+  // --- HÀM KIỂM TRA SPAM (MỚI THÊM) ---
+  const validateContent = (text) => {
+    const content = text.trim();
 
+    // 1. Quá ngắn
+    if (content.length < 3) {
+      return "Nội dung quá ngắn, hãy viết thêm chút nữa nhé!";
+    }
+
+    // 2. Ký tự lặp lại liên tiếp quá 4 lần (vd: "aaaaa", "!!!!!", ".....")
+    if (/(.)\1{4,}/.test(content)) {
+      return "Đừng spam ký tự giống nhau nhé, khó đọc lắm!";
+    }
+
+    // 3. Spam lặp lại từ (vd: "test test test test")
+    const words = content.split(/\s+/);
+    if (words.length > 4) {
+      const uniqueWords = new Set(words.map(w => w.toLowerCase()));
+      // Nếu số lượng từ độc nhất ít hơn 50% tổng số từ -> Spam
+      if (uniqueWords.size / words.length < 0.5) {
+        return "Vui lòng không spam các từ lặp lại!";
+      }
+    }
+
+    return null; // Hợp lệ
+  };
   // --- VISUAL HELPERS ---
   const getSizeClass = () => { const count = wallMessages.length; if (count < 5) return 'note-lg'; if (count < 15) return 'note-md'; return 'note-sm'; };
   const getVisualProps = (id) => {
