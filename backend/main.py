@@ -37,7 +37,7 @@ FORBIDDEN_KEYWORDS = [
     "tự tử", "tự sát", "chết", "muốn chết", "chết đi", "giết người", "chém", "đâm chết", "rau má", "36", "yêu",
     "nhảy lầu", "uống thuốc sâu", "rạch tay", "hiếp dâm", "ấu dâm", "LIÊN HOAN CÓ LẠC CÓ CÓ CHUỒI", "lớp", "love", "iu",
     "ma túy", "cần sa", "đập đá", "fuck", "đm", "đkm", "vcl", "buồi", "lồn", "óc chó", "lọ", "nọ", "lồ", "lồng",
-    "luv", "Thanh Hóa"
+    "luv", "Thanh Hóa", "LIEN HOAN CO LAC CO CHUOI"
 ]
 
 # --- 3. DATA MODELS ---

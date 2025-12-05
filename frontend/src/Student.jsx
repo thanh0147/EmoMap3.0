@@ -289,9 +289,20 @@ function StudentApp() {
           {activeTab === 'wall' && (
             <motion.div key="wall" className="wall-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <div className="wall-input">
-                <input type="text" placeholder="Viết lên tường..." value={newMessage} onChange={e => setNewMessage(e.target.value)} />
+                <input type="text" placeholder="Viết lên tường..." value={newMessage} onChange={e => setNewMessage(e.target.value)} maxLength={MAX_NOTE_LENGTH} />
+                <span style={{ 
+                    position: 'absolute', 
+                    right: '20px', 
+                    fontSize: '0.8rem', 
+                    color: newMessage.length >= MAX_NOTE_LENGTH ? '#ef4444' : '#9ca3af',
+                    fontWeight: 600,
+                    pointerEvents: 'none'
+                }}>
+                    {newMessage.length}/{MAX_NOTE_LENGTH}
+                  </span>
                 <button onClick={postMessage} disabled={isLoading}>Dán</button>
               </div>
+              
               <div className="sticky-wall">
                 {wallMessages.map(msg => {
                   const visual = getVisualProps(msg.id);
