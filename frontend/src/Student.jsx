@@ -256,7 +256,7 @@ function StudentApp() {
           <Heart size={18} /> Khảo sát
         </button>
         <button className={`tab-btn ${activeTab === 'wall' ? 'active' : ''}`} onClick={() => setActiveTab('wall')}>
-          <MessageSquare size={18} /> Tường ẩn danh
+          <MessageSquare size={18} /> Note tâm sự
         </button>
       </div>
 
