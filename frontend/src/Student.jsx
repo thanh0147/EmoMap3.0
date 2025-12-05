@@ -250,7 +250,7 @@ function StudentApp() {
 
       <div className="tabs">
         <button className={`tab-btn ${activeTab === 'chatAI' ? 'active' : ''}`} onClick={() => setActiveTab('chatAI')}>
-          <Sparkles size={18} /> Tâm sự AI
+          <Sparkles size={18} /> Tâm sự Emo
         </button>
         <button className={`tab-btn ${activeTab === 'survey' ? 'active' : ''}`} onClick={() => setActiveTab('survey')}>
           <Heart size={18} /> Khảo sát
