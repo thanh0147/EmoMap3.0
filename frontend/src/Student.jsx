@@ -16,6 +16,47 @@ const RATING_OPTIONS = [
   { score: 5, icon: "😭", label: "Thường xuyên" }
 ];
 
+
+const QUESTION_TYPES = {
+  // Loại 1: Đồng ý / Không đồng ý (Mặc định)
+  AGREEMENT: [
+    { score: 1, icon: "😠", label: "Rất không đồng ý" },
+    { score: 2, icon: "🙁", label: "Không đồng ý" },
+    { score: 3, icon: "😐", label: "Bình thường" },
+    { score: 4, icon: "🙂", label: "Đồng ý" },
+    { score: 5, icon: "😍", label: "Rất đồng ý" }
+  ],
+  // Loại 2: Tần suất (Dành cho câu hỏi sức khỏe, thói quen)
+  FREQUENCY: [
+    { score: 1, icon: "🌑", label: "Không bao giờ" },
+    { score: 2, icon: "🌒", label: "Hiếm khi" },
+    { score: 3, icon: "🌓", label: "Thỉnh thoảng" },
+    { score: 4, icon: "🌔", label: "Thường xuyên" },
+    { score: 5, icon: "🌕", label: "Luôn luôn" }
+  ],
+  // Loại 3: Cảm xúc (Dành cho câu hỏi về tâm trạng)
+  MOOD: [
+    { score: 1, icon: "😭", label: "Tuyệt vọng" },
+    { score: 2, icon: "😢", label: "Buồn bã" },
+    { score: 3, icon: "😐", label: "Bình ổn" },
+    { score: 4, icon: "🙂", label: "Vui vẻ" },
+    { score: 5, icon: "🤩", label: "Hào hứng" }
+  ],
+  // Loại 4: Có / Không (Binary)
+  YES_NO: [
+    { score: 1, icon: "👎", label: "Không" },
+    { score: 5, icon: "👍", label: "Có" }
+  ]
+};
+
+const getOptionsByCategory = (category) => {
+  const cat = category ? category.toLowerCase() : 'default';
+  if (cat.includes('camxuc')) return QUESTION_TYPES.MOOD;
+  if (cat.includes('tansuat') ) return QUESTION_TYPES.FREQUENCY;
+  if (cat.includes('dongy') ) return QUESTION_TYPES.AGREEMENT; 
+  if (cat.includes('cokhong')) return QUESTION_TYPES.YES_NO;
+  return QUESTION_TYPES.AGREEMENT; // Mặc định
+};
 function StudentApp() {
   const [activeTab, setActiveTab] = useState('chatAI'); 
   
@@ -87,11 +128,19 @@ function StudentApp() {
 
   const askQuestion = (index, questionList) => {
     const q = questionList[index];
+    
+    // Lấy bộ đáp án dựa trên loại câu hỏi (category)
+    const options = getOptionsByCategory(q.category);
+
     setIsTyping(true);
-    setTimeout(() => { setIsTyping(false); addMessage('bot', q.question_text, 'rating', q.id); }, 800);
+    setTimeout(() => { 
+      setIsTyping(false); 
+      // Truyền options vào data của tin nhắn
+      addMessage('bot', q.question_text, 'rating', { id: q.id, options: options }); 
+    }, 800);
   };
 
-  const handleRating = (option, questionId) => {
+ const handleRating = (option, questionId) => {
     addMessage('user', `${option.icon} ${option.label}`);
     setSurveyResponses(prev => ({ ...prev, scores: { ...prev.scores, [questionId]: option.score } }));
     if (currentQIndex < questions.length - 1) {
@@ -312,7 +361,23 @@ function StudentApp() {
                       <p className="msg-text">{msg.text}</p>
                       {msg.type === 'select_avatar' && !msg.submitted && <div className="avatar-grid">{AVATAR_LIST.map((ava, idx) => <button key={idx} onClick={() => { msg.submitted = true; handleAvatarSelect(ava); }}>{ava}</button>)}</div>}
                       {msg.type === 'input_name' && !msg.submitted && <InfoForm onSubmit={(n, c, g) => { msg.submitted = true; handleInfoSubmit(n, c, g); }} />}
-                      {msg.type === 'rating' && !msg.submitted && <div className="rating-grid">{RATING_OPTIONS.map((opt) => <button key={opt.score} className="rating-btn" onClick={() => { msg.submitted = true; handleRating(opt, msg.data); }}><span className="rating-icon">{opt.icon}</span><span className="rating-label">{opt.label}</span></button>)}</div>}
+                      {/* Form chọn đáp án (Linh hoạt theo loại câu hỏi) */}
+                      {msg.type === 'rating' && !msg.submitted && (
+                        <div className="rating-grid">
+                          {/* Sử dụng msg.data.options được truyền từ askQuestion */}
+                          {(msg.data.options || QUESTION_TYPES.AGREEMENT).map((opt) => (
+                            <button 
+                              key={opt.score} 
+                              className="rating-btn" 
+                              onClick={() => { msg.submitted = true; handleRating(opt, msg.data.id); }}
+                            >
+                              <span className="rating-icon">{opt.icon}</span>
+                              <span className="rating-label">{opt.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
                       {msg.type === 'text_input' && !msg.submitted && <InputSection onSubmit={(text) => { msg.submitted = true; submitFullSurvey(text); }} />}
                     </div>
                     {msg.sender === 'user' && <div className="avatar user-avatar">{userAvatar || '👤'}</div>}
