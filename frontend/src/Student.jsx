@@ -28,19 +28,19 @@ const QUESTION_TYPES = {
   ],
   // Loại 2: Tần suất (Dành cho câu hỏi sức khỏe, thói quen)
   FREQUENCY: [
-    { score: 1, icon: "🌑", label: "Không bao giờ" },
-    { score: 2, icon: "🌒", label: "Hiếm khi" },
-    { score: 3, icon: "🌓", label: "Thỉnh thoảng" },
-    { score: 4, icon: "🌔", label: "Thường xuyên" },
-    { score: 5, icon: "🌕", label: "Luôn luôn" }
+    { score: 1, icon: "😱", label: "Không bao giờ" },
+    { score: 2, icon: "😥", label: "Hiếm khi" },
+    { score: 3, icon: "😣", label: "Thỉnh thoảng" },
+    { score: 4, icon: "🙂", label: "Thường xuyên" },
+    { score: 5, icon: "😊", label: "Luôn luôn" }
   ],
   // Loại 3: Cảm xúc (Dành cho câu hỏi về tâm trạng)
   MOOD: [
-    { score: 1, icon: "😭", label: "Tuyệt vọng" },
-    { score: 2, icon: "😢", label: "Buồn bã" },
-    { score: 3, icon: "😐", label: "Bình ổn" },
-    { score: 4, icon: "🙂", label: "Vui vẻ" },
-    { score: 5, icon: "🤩", label: "Hào hứng" }
+    { score: 1, icon: "😊", label: "Không bao giờ" },
+    { score: 2, icon: "🙂", label: "Hiếm khi" },
+    { score: 3, icon: "😣", label: "Thỉnh thoảng" },
+    { score: 4, icon: "😥", label: "Thường xuyên" },
+    { score: 5, icon: "😱", label: "Luôn luôn" }
   ],
   // Loại 4: Có / Không (Binary)
   YES_NO: [
@@ -367,7 +367,7 @@ function StudentApp() {
                           {/* Sử dụng msg.data.options được truyền từ askQuestion */}
                           {(msg.data.options || QUESTION_TYPES.AGREEMENT).map((opt) => (
                             <button 
-                              key={opt.score} 
+                              key={opt.score}   
                               className="rating-btn" 
                               onClick={() => { msg.submitted = true; handleRating(opt, msg.data.id); }}
                             >
