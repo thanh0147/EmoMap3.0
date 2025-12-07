@@ -46,7 +46,7 @@ const NOTE_COLORS = ["#fef08a", "#bfdbfe", "#fecaca", "#e9d5ff", "#bbf7d0"];
 // Dữ liệu các bảng trên tường (Vị trí X sẽ được tính toán lại theo mobile/desktop)
 const BASE_WALL_ITEMS = [
   { z: -2, side: 'left', type: 'text', title: "EmoMap", desc: "Người bạn AI thấu cảm" },
-  { z: -6, side: 'right', type: 'text', title: "Chatbot 1-1", desc: "Lắng nghe & sẻ chia" },
+  { z: -6, side: 'right', type: 'text', title: "Emo luôn ở đây", desc: "Lắng nghe & sẻ chia" },
   { z: -10, side: 'left', type: 'image', title: "Giao diện Chat", imgUrl: "/demo-chat.png" },
   { z: -14, side: 'right', type: 'image', title: "Tường Ẩn Danh", imgUrl: "/demo-wall.png" },
   { z: -18, side: 'left', type: 'image', title: "Trang Quản Trị", desc: "Dành cho giáo viên", imgUrl: "/demo-admin.png" },
