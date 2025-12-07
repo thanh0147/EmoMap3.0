@@ -122,7 +122,7 @@ def get_random_questions():
     try:
         response = supabase.table("survey_questions").select("*").limit(50).execute()
         all_questions = response.data
-        selected_questions = random.sample(all_questions, min(len(all_questions), 8))
+        selected_questions = random.sample(all_questions, min(len(all_questions), 5))
         return selected_questions
     except Exception as e:
         return []
