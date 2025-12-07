@@ -392,7 +392,7 @@ const EndDoor = () => {
           <meshStandardMaterial color="#1f2937" />
         </RoundedBox>
         <Text position={[0, 0.05, 0.06]} fontSize={0.22} color="white" anchorX="center" anchorY="middle" fontWeight="bold">
-          PHÒNG TÂM LÝ
+          Emo Room 😺
         </Text>
         <Text position={[0, -0.15, 0.06]} fontSize={0.12} color="#9ca3af" anchorX="center" anchorY="middle" fontStyle="italic">
           (Gõ cửa để vào)
