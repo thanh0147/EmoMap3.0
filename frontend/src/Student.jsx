@@ -122,7 +122,7 @@ function StudentApp() {
     try {
       const res = await axios.get(`${API_BASE_URL}/get-random-questions`);
       setQuestions(res.data);
-      setTimeout(() => { setIsTyping(false); addMessage('bot', `Chào ${userName}! Mình sẽ đưa ra 8 nhận định. Cậu hãy chọn biểu tượng phù hợp nhất nhé.`); setTimeout(() => askQuestion(0, res.data), 1000); }, 1500);
+      setTimeout(() => { setIsTyping(false); addMessage('bot', `Chào ${userName}! Mình sẽ đưa ra 5 nhận định. Cậu hãy chọn biểu tượng phù hợp nhất nhé.`); setTimeout(() => askQuestion(0, res.data), 1000); }, 1500);
     } catch (error) { setIsTyping(false); addMessage('bot', "Lỗi kết nối máy chủ. Cậu thử tải lại trang nhé!"); }
   };
 
