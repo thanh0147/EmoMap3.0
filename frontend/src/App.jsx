@@ -13,7 +13,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LandingPage3D/>} />
+        <Route path="/3d" element={<LandingPage3D/>} />
+        <Route path="/" element={<LandingPage/>} />
         <Route path="/student" element={<StudentApp />} />
         <Route path="/admin" element={<AdminDashboard/>} />
       </Routes>
