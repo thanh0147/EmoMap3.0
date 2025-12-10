@@ -18,7 +18,32 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarEleme
 
 // --- CẤU HÌNH API ---
 const API_BASE_URL = "https://emomap-backend.onrender.com"; 
-
+const getShortLabel = (text) => {
+  if (!text) return "";
+  const lowerText = text.toLowerCase();
+  
+  if (lowerText.includes("hùa theo đám đông để trêu chọc")) return "Hùa theo trêu chọc";
+  if (lowerText.includes("trêu chọc")) return "Bị trêu chọc/Biệt danh xấu";
+  if (lowerText.includes("thảo luận")) return "Thảo luận an toàn";
+  if (lowerText.includes("cô lập") || lowerText.includes("tẩy chay")) return "Bị cô lập/Tẩy chay";
+  if (lowerText.includes("quát tháo")) return "Quát tháo bạn bè";5
+  if (lowerText.includes("xô đẩy") || lowerText.includes("đánh đập")) return "Bị xô đẩy/Đánh";
+  if (lowerText.includes("tài sản") || lowerText.includes("đồ dùng")) return "Mất/Hỏng đồ dùng";
+  if (lowerText.includes("nói xấu") || lowerText.includes("mạng xã hội")) return "Cyber Bullying";
+  if (lowerText.includes("quay phim")) return "Quay phim/Tung mạng";
+  if (lowerText.includes("kỹ năng giao tiếp")) return "Kỹ năng giải quyết";
+  if (lowerText.includes("nhìn thấy")) return "Chứng kiến đánh nhau";
+  if (lowerText.includes("thô tục") || lowerText.includes("chửi thề")) return "Nghe chửi thề";
+  if (lowerText.includes("lên tiếng")) return "Sẵn sàng lên tiếng";
+  if (lowerText.includes("can ngăn")) return "Can ngăn/Bênh vực";
+  if (lowerText.includes("uy hiếp")) return "Thấy nhóm uy hiếp";
+  if (lowerText.includes("bàn tán")) return "Tham gia bàn tán";
+  if (lowerText.includes("biện pháp xử lý")) return "Tin tưởng nhà trường";
+  if (lowerText.includes("báo cáo ngay")) return "Báo cáo giáo viên";
+  
+  // Fallback nếu không khớp từ khóa nào
+  return text.length > 20 ? text.substring(0, 20) + "..." : text;
+};
 export default function AdminDashboard() {
   const [data, setData] = useState([]);
   const [allQuestions, setAllQuestions] = useState([]);
@@ -80,17 +105,15 @@ export default function AdminDashboard() {
     });
   }, [data, timeFilter, customStart, customEnd]);
 
-  // --- TÍNH ĐIỂM TRUNG BÌNH ---
+  // --- LOGIC TÍNH TOÁN & MÀU SẮC ---
   const questionStats = useMemo(() => {
-    if (allQuestions.length === 0) return { labels: [], scores: [] };
+    if (allQuestions.length === 0 || filteredData.length === 0) return { labels: [], scores: [], backgroundColors: [], borderColors: [] };
 
     const stats = {};
-    // Khởi tạo stats cho TẤT CẢ câu hỏi (để luôn hiện trên biểu đồ)
     allQuestions.forEach(q => {
       stats[q.id] = { total: 0, count: 0, text: q.question_text };
     });
 
-    // Duyệt qua bài làm để cộng điểm
     filteredData.forEach(response => {
       const metrics = response.metrics || {};
       Object.keys(metrics).forEach(qId => {
@@ -101,11 +124,22 @@ export default function AdminDashboard() {
       });
     });
 
-    // Map ra mảng, nếu chưa có ai trả lời thì để điểm là 0
-    const labels = allQuestions.map(q => q.question_text.length > 40 ? q.question_text.substring(0, 40) + "..." : q.question_text);
-    const scores = allQuestions.map(q => stats[q.id].count > 0 ? (stats[q.id].total / stats[q.id].count).toFixed(1) : 0);
+    // Lọc ra các câu hỏi đã có câu trả lời
+    const activeQuestionIds = Object.keys(stats).filter(id => stats[id].count > 0);
 
-    return { labels, scores };
+    // 1. Tạo nhãn ngắn gọn
+    const labels = activeQuestionIds.map(id => getShortLabel(stats[id].text));
+    
+    // 2. Tính điểm
+    const scores = activeQuestionIds.map(id => {
+      return (stats[id].total / stats[id].count).toFixed(1);
+    });
+
+    // 3. Tạo mảng màu động (Dynamic Colors)
+    const backgroundColors = scores.map(s => parseFloat(s) > 3 ? 'rgba(239, 68, 68, 0.8)' : 'rgba(99, 102, 241, 0.7)'); // Đỏ nếu > 3.5, Xanh nếu <= 3.5
+    const borderColors = scores.map(s => parseFloat(s) > 3 ? 'rgba(185, 28, 28, 1)' : 'rgba(67, 56, 202, 1)');
+
+    return { labels, scores, backgroundColors, borderColors };
   }, [allQuestions, filteredData]);
 
   // Biểu đồ Cột Ngang
@@ -114,8 +148,8 @@ export default function AdminDashboard() {
     datasets: [{
       label: 'Mức độ trung bình (1-5)',
       data: questionStats.scores,
-      backgroundColor: 'rgba(99, 102, 241, 0.7)',
-      borderColor: 'rgba(99, 102, 241, 1)',
+      backgroundColor: questionStats.backgroundColors, // Áp dụng màu động
+      borderColor: questionStats.borderColors,
       borderWidth: 1,
       borderRadius: 4,
       barThickness: 20, // Độ dày cột
@@ -127,7 +161,7 @@ export default function AdminDashboard() {
     responsive: true,
     maintainAspectRatio: false,
     scales: { x: { min: 0, max: 5 } },
-    plugins: { legend: { position: 'top' } }
+    plugins: { legend: { display: false } }
   };
 
   // Biểu đồ Xu hướng
@@ -196,7 +230,7 @@ export default function AdminDashboard() {
       <div className="charts-section" style={{ gridTemplateColumns: '1fr' }}> 
         <div className="chart-box" style={{ height: '700px' }}>
           <div className="chart-header">
-            <h3>🧩 Phân tích 18 tiêu chí</h3>
+            <h3>🧩 Phân tích 13 tiêu chí</h3>
             <p>{allQuestions.length === 0 ? "⚠️ Chưa tải được danh sách câu hỏi. Vui lòng kiểm tra API /admin/questions" : "Điểm trung bình của từng vấn đề"}</p>
           </div>
           <div className="chart-canvas-container" style={{ height: '100%' }}>
