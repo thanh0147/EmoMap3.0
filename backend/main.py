@@ -2,12 +2,14 @@ import os
 import json
 import re
 import random
+import asyncio # Thêm thư viện này để xử lý đợi
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client, Client
-from groq import Groq
+# Thay đổi: Dùng AsyncGroq để xử lý nhiều người cùng lúc mượt hơn
+from groq import AsyncGroq 
 from dotenv import load_dotenv
 
 # --- 1. CẤU HÌNH HỆ THỐNG ---
@@ -19,7 +21,7 @@ key: str = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
 # Kết nối AI Groq
-groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+groq_client = AsyncGroq(api_key=os.environ.get("GROQ_API_KEY"))
 
 app = FastAPI()
 
@@ -67,6 +69,13 @@ def quick_keyword_check(content: str):
         if word in content_lower:
             return False # Phát hiện từ cấm -> Không an toàn
     return True # Tạm ổn
+def analyze_wall_message_sync(content):
+    """Phân tích tin nhắn tường (Vẫn dùng sync nhẹ nhàng hoặc chuyển sang async nếu cần thiết)"""
+    if not quick_keyword_check(content):
+        return {"safe": False, "color": "red"}
+    # ... Logic phân tích màu đơn giản có thể giữ nguyên hoặc chuyển sang AI ...
+    # Để tối ưu, phần Wall message có thể bỏ qua AI nếu server quá tải
+    return {"safe": True, "color": "green"} 
 
 def analyze_wall_message(content):
     """
@@ -111,6 +120,54 @@ def analyze_wall_message(content):
         print(f"AI Error: {e}")
         return {"safe": True, "color": "gray"}
 
+# --- HÀM GỌI AI THÔNG MINH (RETRY LOGIC) ---
+async def call_ai_with_retry(prompt, system_prompt, model="qwen/qwen3-32b", max_retries=3):
+    """Tự động thử lại nếu AI bị quá tải"""
+    for attempt in range(max_retries):
+        try:
+            # Gọi Async
+            chat_completion = await groq_client.chat.completions.create(
+                messages=[
+      {
+        "role": "system",
+        "content": system_prompt
+      },
+      {
+        "role": "user",
+        "content": prompt
+      }],
+                model=model,
+                temperature=0.7
+            )
+            return clean_ai_response(chat_completion.choices[0].message.content)
+        except Exception as e:
+            print(f"Lỗi AI (Lần {attempt+1}): {e}")
+            if "429" in str(e): # Lỗi quá tải (Rate Limit)
+                await asyncio.sleep(2 * (attempt + 1)) # Đợi 2s, 4s, 6s rồi thử lại
+            else:
+                break # Lỗi khác thì dừng luôn
+    
+    return None # Thất bại sau 3 lần
+async def call_ai_with_retry3(messages, model="qwen/qwen3-32b", max_retries=3):
+    """Tự động thử lại nếu AI bị quá tải"""
+    for attempt in range(max_retries):
+        try:
+            # Gọi Async
+            chat_completion = await groq_client.chat.completions.create(
+                messages=messages,
+                model=model,
+                temperature=0.7
+            )
+            return clean_ai_response(chat_completion.choices[0].message.content)
+        except Exception as e:
+            print(f"Lỗi AI (Lần {attempt+1}): {e}")
+            if "429" in str(e): # Lỗi quá tải (Rate Limit)
+                await asyncio.sleep(2 * (attempt + 1)) # Đợi 2s, 4s, 6s rồi thử lại
+            else:
+                break # Lỗi khác thì dừng luôn
+    
+    return None # Thất bại sau 3 lần
+
 # --- 5. API ENDPOINTS ---
 
 @app.get("/")
@@ -128,7 +185,7 @@ def get_random_questions():
         return []
 
 @app.post("/submit-survey")
-def submit_survey(data: SurveyInput):
+async def submit_survey(data: SurveyInput):
     avg_score = sum(data.scores.values()) / len(data.scores) if data.scores else 0
     mood = "tiêu cực" if avg_score < 3 else "tích cực"
     system_prompt = f"""
@@ -164,23 +221,12 @@ def submit_survey(data: SurveyInput):
     Hãy đưa ra một lời khuyên ngắn gọn có thể dùng thêm các icon động viên chân thành, ấm áp và các hành động cụ thể có thể giúp cải thiện tâm trạng.
     """
     
-    try:
-        chat_completion = groq_client.chat.completions.create(
-            messages=[
-      {
-        "role": "system",
-        "content": system_prompt
-      },
-      {
-        "role": "user",
-        "content": prompt
-      }
-    ],
-            model="qwen/qwen3-32b",
-        )
-        ai_advice = clean_ai_response(chat_completion.choices[0].message.content)
-    except Exception as e:
+    # Gọi AI với cơ chế Retry
+    ai_advice = await call_ai_with_retry(prompt, system_prompt)
+    
+    if not ai_advice:
         ai_advice = "Hiện tại Emo đang bận một chút, nhưng cậu hãy nhớ luôn có mọi người bên cạnh nhé!"
+        
 
     try:
         supabase.table("survey_responses").insert({
@@ -200,7 +246,7 @@ def submit_survey(data: SurveyInput):
 @app.post("/post-message")
 def post_message(msg: MessageInput):
     # 1. Phân tích nội dung (Safety & Color)
-    analysis = analyze_wall_message(msg.content)
+    analysis = analyze_wall_message_sync(msg.content)
     
     is_safe = analysis.get("safe", False)
     color = analysis.get("color", "gray")
@@ -245,6 +291,14 @@ def get_all_surveys():
         .execute()
     return response.data
 
+@app.get("/admin/questions")
+def get_admin_questions():
+    try:
+        response = supabase.table("survey_questions").select("*").order("id").execute()
+        return response.data
+    except: return []
+    
+    
 class CommentInput(BaseModel):
     message_id: str
     content: str
@@ -284,7 +338,7 @@ def post_comment(data: CommentInput):
 
 # --- API CHAT TÂM SỰ (ĐÃ NÂNG CẤP LOGIC NHẠC) ---
 @app.post("/chat-counseling")
-def chat_counseling(data: ChatContextInput):
+async def chat_counseling(data: ChatContextInput):
     if not quick_keyword_check(data.message):
         return {"reply": "Emo nhận thấy bạn đang có những suy nghĩ tiêu cực. Hãy tìm kiếm sự giúp đỡ từ người thân ngay nhé."}
 
@@ -323,24 +377,23 @@ def chat_counseling(data: ChatContextInput):
     messages.extend(data.history[-4:]) 
     messages.append({"role": "user", "content": data.message})
 
-    try:
-        chat_completion = groq_client.chat.completions.create(
-            messages=messages,  
-            model="qwen/qwen3-32b",
-            temperature=0.7
-        )
-        reply = clean_ai_response(chat_completion.choices[0].message.content)
-        
-        # 3. Lưu vào CSDL
-        try:
-            supabase.table("counseling_chats").insert({
-                "user_message": data.message,
-                "ai_reply": reply
-            }).execute()
-        except Exception as db_err:
-            print(f"Lỗi lưu chat log: {db_err}")
 
-        return {"reply": reply}
-    except Exception as e:
-        print(f"AI Error: {e}")
-        return {"reply": "Emo đang bị 'lag' xíu, cậu nói lại được không?"}
+
+            # Gọi AI với cơ chế Retry
+    reply = await call_ai_with_retry3(messages)
+
+    if not reply:
+        return {"reply": "Hiện tại nhiều bạn đang tâm sự quá nên Emo hơi 'lag'. Cậu chờ 1 xíu rồi nhắn lại nhé!"}
+
+    # Lưu log không blocking (chạy ngầm) - Cần thiết lập background tasks trong thực tế, 
+    # nhưng ở đây ta cứ lưu thẳng vì Supabase khá nhanh.
+    # 3. Lưu vào CSDL
+    try:
+        supabase.table("counseling_chats").insert({
+            "user_message": data.message,
+            "ai_reply": reply
+        }).execute()
+    except Exception as db_err:
+        print(f"Lỗi lưu chat log: {db_err}")
+
+    return {"reply": reply}
