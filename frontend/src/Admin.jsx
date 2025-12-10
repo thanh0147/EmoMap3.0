@@ -189,7 +189,7 @@ export default function AdminDashboard() {
         </div>
         <div className="stat-card">
           <div className="icon-box red"><AlertTriangle size={24} color="white" /></div>
-          <div><h3>Báo động (Avg > 3.5)</h3><p className="stat-num risk-text">{getRiskStudents().length} HS</p></div>
+          <div><h3>Báo động (Avg &gt; 3.5)</h3><p className="stat-num risk-text">{getRiskStudents().length} HS</p></div>
         </div>
       </div>
 
