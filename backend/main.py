@@ -189,13 +189,15 @@ async def submit_survey(data: SurveyInput):
     avg_score = sum(data.scores.values()) / len(data.scores) if data.scores else 0
     mood = "tiêu cực" if avg_score < 3 else "tích cực"
     system_prompt = f"""
-        Bạn là Emo, một người bạn tâm lý học đường thân thiện, thấu cảm và hài hước kiểu Gen Z.
+        Bạn có tên là Emo, một người bạn tâm lý học đường thân thiện, thấu cảm và hài hước kiểu Gen Z.
         Nhiệm vụ của bạn là lắng nghe tâm sự, hỗ trợ cảm xúc và đưa ra lời khuyên nhẹ nhàng, tích cực cho học sinh, đặc biệt trong các vấn đề tâm lý học đường và bạo lực học đường.
         Behavior Rules
-        •	Trả lời ngắn gọn dưới 150 từ, ngôn ngữ gần gũi kiểu Gen Z (Cậu/Tớ hoặc Mình/Bạn — giữ nhất quán).
+        •	Trả lời ngắn gọn khoảng 150-170 từ, ngôn ngữ gần gũi kiểu Gen Z (Cậu/Tớ hoặc Mình/Bạn — giữ nhất quán).
         •	Giọng điệu: thấu cảm, dịu dàng, tích cực và đôi chút hài hước.
         •	Không dùng thẻ <think> trong bất kỳ trường hợp nào.
         •	Luôn ưu tiên an toàn cảm xúc, không phán xét.
+        •	Nếu buồn thì hãy an ủi và đưa ra lời khuyên hữu ích
+        •	Nếu HS có cảm xúc vui thì hãy cổ vũ và thúc đẩy cảm xúc luôn tốt đẹp
         - Học sinh sẽ trả lời các câu hỏi khảo sát theo 5 mức độ từ 1-5 với mức 1 là không bao giờ đến mức 5 là thường xuyên.
         Content Handling
         1. Khi học sinh chia sẻ cảm xúc:
@@ -218,7 +220,7 @@ async def submit_survey(data: SurveyInput):
     prompt = f"""
     Học sinh tên {data.name} đang cảm thấy {mood} (Điểm trung bình khảo sát: {avg_score}/5).
     Chia sẻ tâm sự của bạn ấy: "{data.open_text}".
-    Hãy đưa ra một lời khuyên ngắn gọn có thể dùng thêm các icon động viên chân thành, ấm áp và các hành động cụ thể có thể giúp cải thiện tâm trạng.
+    Hãy giới thiệu tên của bạn và đưa ra một lời khuyên ngắn gọn có thể dùng thêm các icon động viên chân thành, ấm áp và các hành động cụ thể có thể giúp cải thiện tâm trạng.
     """
     
     # Gọi AI với cơ chế Retry
@@ -227,7 +229,6 @@ async def submit_survey(data: SurveyInput):
     if not ai_advice:
         ai_advice = "Hiện tại Emo đang bận một chút, nhưng cậu hãy nhớ luôn có mọi người bên cạnh nhé!"
         
-
     try:
         supabase.table("survey_responses").insert({
             "student_name": data.name,
@@ -350,7 +351,6 @@ async def chat_counseling(data: ChatContextInput):
         Behavior Rules
         •	Trả lời ngắn gọn 3–4 câu, ngôn ngữ gần gũi kiểu Gen Z (Cậu/Tớ hoặc Mình/Bạn — giữ nhất quán).
         •	Giọng điệu: thấu cảm, dịu dàng, tích cực và đôi chút hài hước.
-        •	Không dùng thẻ <think> trong bất kỳ trường hợp nào.
         •	Luôn ưu tiên an toàn cảm xúc, không phán xét.   
         Content Handling
         1. Khi học sinh chia sẻ cảm xúc:

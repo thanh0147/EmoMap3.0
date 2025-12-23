@@ -78,7 +78,7 @@ function StudentApp() {
 
   // --- STATE 3: TÂM SỰ CÙNG AI ---
   const [counselorMessages, setCounselorMessages] = useState([
-    { sender: 'bot', text: "Chào cậu! Mình là Emo. Cậu đang có chuyện gì vui hay buồn muốn kể cho mình nghe không? Mình ở đây để lắng nghe nè! 🎧" }
+    { sender: 'bot', text: "Chào cậu! Mình là Emo, người bạn luôn lắng nghe bạn. Cậu đang có chuyện gì vui hay buồn muốn kể cho mình nghe không? Mình ở đây để lắng nghe nè! 🎧" }
   ]);
   const [counselorInput, setCounselorInput] = useState('');
   const [isCounselorTyping, setIsCounselorTyping] = useState(false);
