@@ -298,12 +298,6 @@ function StudentApp() {
       </header>
 
       <div className="tabs">
-        <button className={`tab-btn ${activeTab === 'chatAI' ? 'active' : ''}`} onClick={() => setActiveTab('chatAI')}>
-          <Sparkles size={18} /> Tâm sự Emo
-        </button>
-        <button className={`tab-btn ${activeTab === 'survey' ? 'active' : ''}`} onClick={() => setActiveTab('survey')}>
-          <Heart size={18} /> Khảo sát
-        </button>
         <button className={`tab-btn ${activeTab === 'wall' ? 'active' : ''}`} onClick={() => setActiveTab('wall')}>
           <MessageSquare size={18} /> Note tâm sự
         </button>
@@ -311,84 +305,6 @@ function StudentApp() {
 
       <main className="content-area">
         <AnimatePresence mode='wait'>
-          
-          {/* TAB 1: TÂM SỰ CÙNG AI */}
-          {activeTab === 'chatAI' && (
-            <motion.div key="chatAI" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="chat-interface">
-              <div className="messages-list">
-                {counselorMessages.map((msg, idx) => (
-                  <motion.div 
-                    key={idx} 
-                    initial={{ opacity: 0, y: 10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    className={`message-row ${msg.sender === 'user' ? 'user-row' : 'bot-row'}`}
-                  >
-                    {msg.sender === 'bot' && <div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/> </div>}
-                    <div className={`bubble ${msg.sender}`}>
-                      {/* FIX: Hiển thị trực tiếp text thay vì gọi hàm renderMessageContent đã bị xóa */}
-                      <p className="msg-text">{msg.text}</p>
-                    </div>
-                    {msg.sender === 'user' && <div className="avatar user-avatar">{userAvatar || '😺'}</div>}
-                  </motion.div>
-                ))}
-                {isCounselorTyping && <div className="message-row bot-row"><div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/> </div><div className="bubble bot typing"><span>.</span><span>.</span><span>.</span></div></div>}
-                <div ref={counselorEndRef} />
-              </div>
-
-              <div className="wall-input" style={{ marginTop: 'auto', position: 'sticky', bottom: 0, zIndex: 100 }}>
-                <input 
-                  type="text" 
-                  placeholder="Nhắn tin cho Emo..." 
-                  value={counselorInput}
-                  onChange={(e) => setCounselorInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleCounselorSubmit()}
-                />
-                <button onClick={handleCounselorSubmit} disabled={isCounselorTyping}>
-                  <Send size={18} />
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* TAB 2: KHẢO SÁT */}
-          {activeTab === 'survey' && (
-            <motion.div key="survey" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="chat-interface">
-              <div className="messages-list">
-                {messages.map((msg) => (
-                  <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`message-row ${msg.sender === 'user' ? 'user-row' : 'bot-row'}`}>
-                    {msg.sender === 'bot' && <div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/></div>}
-                    <div className={`bubble ${msg.sender} ${msg.type === 'advice_card' ? 'advice-bubble' : ''}`}>
-                      <p className="msg-text">{msg.text}</p>
-                      {msg.type === 'select_avatar' && !msg.submitted && <div className="avatar-grid">{AVATAR_LIST.map((ava, idx) => <button key={idx} onClick={() => { msg.submitted = true; handleAvatarSelect(ava); }}>{ava}</button>)}</div>}
-                      {msg.type === 'input_name' && !msg.submitted && <InfoForm onSubmit={(n, c, g) => { msg.submitted = true; handleInfoSubmit(n, c, g); }} />}
-                      {/* Form chọn đáp án (Linh hoạt theo loại câu hỏi) */}
-                      {msg.type === 'rating' && !msg.submitted && (
-                        <div className="rating-grid">
-                          {/* Sử dụng msg.data.options được truyền từ askQuestion */}
-                          {(msg.data.options || QUESTION_TYPES.AGREEMENT).map((opt) => (
-                            <button 
-                              key={opt.score}   
-                              className="rating-btn" 
-                              onClick={() => { msg.submitted = true; handleRating(opt, msg.data.id); }}
-                            >
-                              <span className="rating-icon">{opt.icon}</span>
-                              <span className="rating-label">{opt.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {msg.type === 'text_input' && !msg.submitted && <InputSection onSubmit={(text) => { msg.submitted = true; submitFullSurvey(text); }} />}
-                    </div>
-                    {msg.sender === 'user' && <div className="avatar user-avatar">{userAvatar || '👤'}</div>}
-                  </motion.div>
-                ))}
-                {isTyping && <div className="message-row bot-row"><div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/763/763755.png" width="100%"/></div><div className="bubble bot typing"><span>.</span><span>.</span><span>.</span></div></div>}
-                <div ref={messagesEndRef} />
-              </div>
-            </motion.div>
-          )}
-
           {/* TAB 3: TƯỜNG ẨN DANH */}
           {activeTab === 'wall' && (
             <motion.div key="wall" className="wall-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
