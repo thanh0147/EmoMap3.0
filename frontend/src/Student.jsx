@@ -58,7 +58,7 @@ const getOptionsByCategory = (category) => {
   return QUESTION_TYPES.AGREEMENT; // Mặc định
 };
 function StudentApp() {
-  const [activeTab, setActiveTab] = useState('chatAI'); 
+  const [activeTab, setActiveTab] = useState('wall'); 
   
   // --- STATE 1: CHATBOT KHẢO SÁT ---
   const [messages, setMessages] = useState([]); 
