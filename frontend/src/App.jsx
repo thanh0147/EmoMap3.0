@@ -14,7 +14,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/3d" element={<LandingPage3D/>} />
-        <Route path="/" element={<LandingPage/>} />
+        <Route path="/" element={<StudentApp/>} />
         <Route path="/student" element={<StudentApp />} />
         <Route path="/admin" element={<AdminDashboard/>} />
       </Routes>
